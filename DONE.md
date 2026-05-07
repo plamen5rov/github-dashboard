@@ -1,5 +1,14 @@
 # DONE.md — Changelog
 
+## Phase 7: Testing
+- [2025-05-07] Added vitest test script to package.json
+- [2025-05-07] Created MSW handlers for mocking GitHub REST + GraphQL API responses
+- [2025-05-07] Created test setup with MSW server lifecycle
+- [2025-05-07] Added 27 unit tests for utils: formatNumber, formatRelativeTime, getDateForTimeRange, buildGitHubQuery, isOSILicense
+- [2025-05-07] Added 10 component tests for RepoCard: rendering, badges, topic clicks, links
+- [2025-05-07] Added 6 component tests for SortControls: select options, sort change, order toggle
+- [2025-05-07] All 43 tests passing
+
 ## Phase 6: Polish
 - [2025-05-07] Added dark/light mode toggle with system preference detection and localStorage persistence
 - [2025-05-07] Added light mode color scheme to Tailwind config and CSS
