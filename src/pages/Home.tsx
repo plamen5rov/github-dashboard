@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useFilters } from '../hooks/useFilters'
 import { useSort } from '../hooks/useSort'
@@ -17,12 +17,23 @@ function Home() {
   const { theme, toggleTheme } = useTheme()
   const [showLanguagePicker, setShowLanguagePicker] = useState(false)
   const [topicInput, setTopicInput] = useState('')
+  const langPickerRef = useRef<HTMLDivElement>(null)
 
   const POPULAR_LANGUAGES = [
     'TypeScript', 'JavaScript', 'Python', 'Rust', 'Go',
     'Java', 'C++', 'C', 'Ruby', 'PHP', 'Swift', 'Kotlin',
     'Dart', 'Vue', 'Svelte', 'Shell', 'Lua', 'Scala',
   ]
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langPickerRef.current && !langPickerRef.current.contains(e.target as Node)) {
+        setShowLanguagePicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleTopicAdd = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && topicInput.trim()) {
@@ -189,7 +200,7 @@ function Home() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-github-border">
-            <div className="relative">
+            <div ref={langPickerRef} className="relative">
               <button
                 onClick={() => setShowLanguagePicker(!showLanguagePicker)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
@@ -284,35 +295,33 @@ function Home() {
             )}
           </div>
 
-          {(filters.topics.length > 0) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-github-border">
-              <span className="text-sm text-github-muted mr-2">Topics:</span>
-              {filters.topics.map((topic) => (
-                <span
-                  key={topic}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-github-accent/20 text-github-accent rounded-full text-xs"
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-github-border">
+            <span className="text-sm text-github-muted mr-2">Topics:</span>
+            {filters.topics.map((topic) => (
+              <span
+                key={topic}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-github-accent/20 text-github-accent rounded-full text-xs"
+              >
+                {topic}
+                <button
+                  onClick={() => removeTopic(topic)}
+                  className="ml-1 hover:text-white focus:outline-none"
+                  aria-label={`Remove topic ${topic}`}
                 >
-                  {topic}
-                  <button
-                    onClick={() => removeTopic(topic)}
-                    className="ml-1 hover:text-white focus:outline-none"
-                    aria-label={`Remove topic ${topic}`}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              <input
-                type="text"
-                value={topicInput}
-                onChange={(e) => setTopicInput(e.target.value)}
-                onKeyDown={handleTopicAdd}
-                placeholder="Add topic (Enter)"
-                className="ml-2 px-2 py-1 bg-github-border border-0 rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent w-32"
-                aria-label="Add topic filter"
-              />
-            </div>
-          )}
+                  ×
+                </button>
+              </span>
+            ))}
+            <input
+              type="text"
+              value={topicInput}
+              onChange={(e) => setTopicInput(e.target.value)}
+              onKeyDown={handleTopicAdd}
+              placeholder="Add topic (Enter)"
+              className="px-2 py-1 bg-github-border border-0 rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent w-32"
+              aria-label="Add topic filter"
+            />
+          </div>
         </div>
 
         {isError && (
