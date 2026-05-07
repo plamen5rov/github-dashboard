@@ -18,6 +18,13 @@ export default {
           green: '#238636',
           purple: '#8957e5',
         },
+        light: {
+          bg: '#ffffff',
+          surface: '#f6f8fa',
+          border: '#d0d7de',
+          text: '#1f2328',
+          muted: '#656d76',
+        },
       },
     },
   },

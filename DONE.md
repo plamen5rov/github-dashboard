@@ -1,5 +1,10 @@
 # DONE.md — Changelog
 
+## Phase 6: Polish
+- [2025-05-07] Added dark/light mode toggle with system preference detection and localStorage persistence
+- [2025-05-07] Added light mode color scheme to Tailwind config and CSS
+- [2025-05-07] Added theme toggle button to Home and Settings page headers
+
 ## Phase 4 & 5: UI Components and Pages
 - [2025-05-07] Created LanguageBadge component with color-coded language dots
 - [2025-05-07] Created LicenseBadge component with Open Source / No License indicators

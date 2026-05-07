@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useFilters } from '../hooks/useFilters'
 import { useSort } from '../hooks/useSort'
 import { useRepos } from '../hooks/useRepos'
+import { useTheme } from '../hooks/useTheme'
 import SearchInput from '../components/SearchInput'
 import FilterBar from '../components/FilterBar'
 import SortControls from '../components/SortControls'
@@ -11,6 +12,7 @@ import { formatNumber } from '../lib/utils'
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
   const { sort, setSort, toggleOrder } = useSort()
+  const { theme, toggleTheme } = useTheme()
 
   const {
     repos,
@@ -64,6 +66,21 @@ function Home() {
                 )}
               </span>
             )}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
             <Link
               to="/settings"
               className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"

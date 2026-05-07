@@ -6,10 +6,18 @@
   color-scheme: dark;
 }
 
+html:not(.dark) {
+  color-scheme: light;
+}
+
 body {
   @apply bg-github-dark text-github-text antialiased;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+html:not(.dark) body {
+  @apply bg-light-bg text-light-text;
 }
 
 * {
