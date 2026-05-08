@@ -19,6 +19,7 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
   const bookmarked = isBookmarked(repo.fullName)
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isInAnyCollection = prefs.collections.some((c) => c.repoFullNames.includes(repo.fullName))
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -59,11 +60,15 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
               <div ref={dropdownRef} className="relative">
                 <button
                   onClick={() => setShowCollectionDropdown(!showCollectionDropdown)}
-                  className="p-1 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded transition-colors"
+                  className={`p-1 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                    isInAnyCollection
+                      ? 'text-blue-400 hover:text-blue-300'
+                      : 'text-github-muted hover:text-github-text'
+                  }`}
                   aria-label="Add to collection"
-                  title="Add to collection"
+                  title={isInAnyCollection ? 'In collection(s)' : 'Add to collection'}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill={isInAnyCollection ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </button>

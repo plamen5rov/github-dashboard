@@ -28,6 +28,7 @@ export function savePreferences(prefs: Partial<UserPreferences>): UserPreference
   const current = loadPreferences()
   const updated = { ...current, ...prefs }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  window.dispatchEvent(new CustomEvent('preferences-changed'))
   return updated
 }
 

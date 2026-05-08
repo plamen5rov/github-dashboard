@@ -28,9 +28,13 @@ export function usePersonalization() {
   const [prefs, setPrefs] = useState<UserPreferences>(loadPreferences)
 
   useEffect(() => {
-    const handleStorage = () => setPrefs(loadPreferences())
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+    const handleSync = () => setPrefs(loadPreferences())
+    window.addEventListener('storage', handleSync)
+    window.addEventListener('preferences-changed', handleSync)
+    return () => {
+      window.removeEventListener('storage', handleSync)
+      window.removeEventListener('preferences-changed', handleSync)
+    }
   }, [])
 
   const refresh = useCallback(() => setPrefs(loadPreferences()), [])

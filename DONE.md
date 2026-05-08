@@ -15,6 +15,10 @@
 - [2026-05-08] Added "Add to Collection" dropdown on RepoCard with checkmarks for existing collections
 - [2026-05-08] Added bookmark count badge to header bookmark icon
 - [2026-05-08] Added fetchRepoByFullName API function for fetching individual repos
+- [2026-05-08] Fixed cross-component state sync with custom preferences-changed event
+- [2026-05-08] Added collection count badge to header collections button
+- [2026-05-08] CollectionsPanel now shows expandable repo cards with language, license, stars, forks, topics
+- [2026-05-08] RepoCard collection icon fills blue when repo is in any collection
 - [2026-05-08] 73 tests passing
 
 ## Phase 11: Developer-Centric Filters

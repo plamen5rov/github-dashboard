@@ -24,7 +24,7 @@ function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
   const { sort, setSort, toggleOrder } = useSort()
   const { theme, toggleTheme } = useTheme()
-  const { unreadAlertCount } = usePersonalization()
+  const { unreadAlertCount, prefs } = usePersonalization()
   const [showLanguagePicker, setShowLanguagePicker] = useState(false)
   const [topicInput, setTopicInput] = useState('')
   const langPickerRef = useRef<HTMLDivElement>(null)
@@ -165,13 +165,18 @@ function Home() {
             </button>
             <button
               onClick={() => setShowCollections(true)}
-              className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
+              className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Collections"
               title="Collections"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
+              {prefs.collections.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
+                  {prefs.collections.length > 9 ? '9+' : prefs.collections.length}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setShowFollowedTopics(true)}
@@ -452,7 +457,7 @@ function Home() {
         />
       </main>
 
-      <CollectionsPanel isOpen={showCollections} onClose={() => setShowCollections(false)} />
+      <CollectionsPanel isOpen={showCollections} onClose={() => setShowCollections(false)} onTopicClick={handleTopicClick} />
       <FollowedTopicsManager isOpen={showFollowedTopics} onClose={() => setShowFollowedTopics(false)} />
       <IgnoreListManager isOpen={showIgnoreList} onClose={() => setShowIgnoreList(false)} />
       <TrendAlerts isOpen={showAlerts} onClose={() => setShowAlerts(false)} />
