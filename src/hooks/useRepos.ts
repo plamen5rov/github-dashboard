@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { fetchRepos } from '../lib/github'
-import type { Repository, RateLimitInfo } from '../types/github'
+import { fetchReposWithIntelligence } from '../lib/github'
+import type { RepositoryWithIntelligence, RateLimitInfo } from '../types/github'
 import type { BuildQueryOptions } from '../lib/utils'
 import type { SortField, SortOrder } from '../lib/utils'
 import type { TimeRange } from '../lib/constants'
@@ -19,7 +19,7 @@ interface UseReposOptions {
 }
 
 interface ReposPage {
-  repos: Repository[]
+  repos: RepositoryWithIntelligence[]
   totalCount: number
   rateLimit: RateLimitInfo
 }
@@ -41,7 +41,7 @@ export function useRepos(options: UseReposOptions) {
   const result = useInfiniteQuery<ReposPage>({
     queryKey,
     queryFn: ({ pageParam = 1 }) =>
-      fetchRepos(queryOptions, options.sort, options.order, pageParam as number),
+      fetchReposWithIntelligence(queryOptions, options.sort, options.order, pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
       const loadedCount = allPages.reduce((sum, page) => sum + page.repos.length, 0)
       if (loadedCount >= lastPage.totalCount) return undefined

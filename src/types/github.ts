@@ -108,3 +108,22 @@ export interface GitHubAPIError {
   status: number
   documentation_url?: string
 }
+
+export interface StarTimelineEntry {
+  starred_at: string
+}
+
+export interface GrowthMetrics {
+  starsToday: number
+  starsThisWeek: number
+  starsThisMonth: number
+  forksGrowth: number
+  velocity: number
+  momentumScore: number
+  trend: 'accelerating' | 'stable' | 'declining' | 'new'
+  trendingTopics: string[]
+}
+
+export interface RepositoryWithIntelligence extends Repository {
+  growth?: GrowthMetrics
+}

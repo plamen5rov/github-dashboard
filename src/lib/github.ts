@@ -3,10 +3,14 @@ import type {
   Repository,
   RateLimitInfo,
   GitHubAPIError,
+  StarTimelineEntry,
+  RepositoryWithIntelligence,
+  GrowthMetrics,
 } from '../types/github'
 import { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, DEFAULT_PER_PAGE } from './constants'
 import type { BuildQueryOptions, SortField, SortOrder } from './utils'
 import { buildGitHubQuery, getAPISortField } from './utils'
+import { calculateGrowthMetrics } from './growth'
 
 function getToken(): string | null {
   return localStorage.getItem('github_token') || import.meta.env.VITE_GITHUB_TOKEN || null
@@ -192,3 +196,106 @@ export async function fetchRepos(
 }
 
 export { extractRateLimit }
+
+const starTimelineCache = new Map<string, StarTimelineEntry[]>()
+
+async function fetchStarTimeline(fullName: string): Promise<StarTimelineEntry[]> {
+  if (starTimelineCache.has(fullName)) {
+    return starTimelineCache.get(fullName)!
+  }
+
+  const token = getToken()
+  if (!token) return []
+
+  const params = new URLSearchParams({
+    per_page: '100',
+    page: '1',
+  })
+
+  const url = `${GITHUB_API_BASE}/repos/${fullName}/stargazers?${params.toString()}`
+  const response = await fetch(url, {
+    headers: getHeaders({
+      'Accept': 'application/vnd.github.star+json',
+    }),
+  })
+
+  if (!response.ok) {
+    starTimelineCache.set(fullName, [])
+    return []
+  }
+
+  const data: StarTimelineEntry[] = await response.json()
+  starTimelineCache.set(fullName, data)
+  return data
+}
+
+export async function enrichWithIntelligence(
+  repos: Repository[],
+): Promise<Map<string, GrowthMetrics>> {
+  const result = new Map<string, GrowthMetrics>()
+
+  const token = getToken()
+  if (!token) return result
+
+  const intelligencePromises = repos.map(async (repo) => {
+    try {
+      const starTimeline = await fetchStarTimeline(repo.fullName)
+
+      const createdDate = repo.pushedAt
+      const metrics = calculateGrowthMetrics(
+        starTimeline,
+        repo.stars,
+        createdDate,
+        repo.pushedAt,
+      )
+
+      result.set(repo.fullName, metrics)
+    } catch {
+      // Skip this repo if intelligence fetching fails
+    }
+  })
+
+  await Promise.allSettled(intelligencePromises)
+  return result
+}
+
+export async function fetchReposWithIntelligence(
+  options: BuildQueryOptions,
+  sort: SortField,
+  order: SortOrder,
+  page: number = 1,
+): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo }> {
+  const { repos, totalCount, rateLimit } = await searchRepositories(options, sort, order, page)
+
+  const token = getToken()
+  if (token && repos.length > 0) {
+    const fullNameMap = new Map(repos.map((r) => [r.fullName, r]))
+    const fullNames = Array.from(fullNameMap.keys())
+
+    try {
+      const enriched = await enrichWithGraphQL(fullNames)
+      repos.forEach((repo) => {
+        const extra = enriched.get(repo.fullName)
+        if (extra) {
+          repo.openPRs = extra.openPRs
+          repo.languageColor = extra.languageColor
+        }
+      })
+    } catch {
+      // GraphQL enrichment failed, continue with REST data
+    }
+
+    try {
+      const intelligence = await enrichWithIntelligence(repos)
+      const reposWithIntelligence: RepositoryWithIntelligence[] = repos.map((repo) => ({
+        ...repo,
+        growth: intelligence.get(repo.fullName),
+      }))
+      return { repos: reposWithIntelligence, totalCount, rateLimit }
+    } catch {
+      // Intelligence enrichment failed, return without growth data
+    }
+  }
+
+  return { repos, totalCount, rateLimit }
+}

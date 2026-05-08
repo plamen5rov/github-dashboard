@@ -1,10 +1,11 @@
-import type { Repository } from '../types/github'
+import type { RepositoryWithIntelligence } from '../types/github'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
+import RepositoryInsight from './RepositoryInsight'
 import { formatNumber, formatRelativeTime } from '../lib/utils'
 
 interface RepoCardProps {
-  repo: Repository
+  repo: RepositoryWithIntelligence
   onTopicClick: (topic: string) => void
 }
 
@@ -72,6 +73,8 @@ function RepoCard({ repo, onTopicClick }: RepoCardProps) {
           {formatRelativeTime(repo.pushedAt)}
         </span>
       </div>
+
+      {repo.growth && <RepositoryInsight growth={repo.growth} />}
 
       {repo.topics.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-auto pt-3 border-t border-github-border">
