@@ -21,6 +21,9 @@
 - [2026-05-08] RepoCard collection icon fills blue when repo is in any collection
 - [2026-05-08] 73 tests passing
 
+## Phase 13: Documentation
+- [2026-05-08] Created comprehensive README.md with feature descriptions, icons, project structure, setup guide, and testing docs (files modified: README.md)
+
 ## Phase 11: Developer-Centric Filters
 - [2026-05-08] Added 11 developer-centric filter types: beginner_friendly, good_first_issue, actively_maintained, solo_maintained, production_ready, ai_related, indie_project, new_exploding, low_competition, enterprise_grade, lightweight
 - [2026-05-08] Created `developerFilters.ts` with detection logic for each filter using repo metadata, topics, descriptions, and GraphQL enrichment data
