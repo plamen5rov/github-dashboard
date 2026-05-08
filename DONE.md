@@ -44,9 +44,11 @@
 - [2026-05-08] Fixed `totalCount` bug: was using `finalRepos.length` instead of API total, killing pagination when client-side filters removed all page-1 repos
 - [2026-05-08] Fixed pagination stop condition: uses `rawCount === 0` (API exhausted) instead of `loadedCount >= totalCount`
 
-## Phase 18: Header Badge Visibility
+## Phase 18: Header UI Polish
 - [2026-05-08] Added green count badge to Followed Topics header button (files modified: Home.tsx)
 - [2026-05-08] Added red count badge to Ignore List header button (files modified: Home.tsx)
+- [2026-05-08] Increased rate limit display font size (`text-xs` → `text-sm`) and added red color when remaining ≤ 10 (files modified: Home.tsx)
+- [2026-05-08] Increased title font size (`text-xl` → `text-2xl`) and added subtitle describing app features (files modified: Home.tsx)
 
 ## Phase 17: Remove Dead Trend Alerts Feature
 - [2026-05-08] Removed `TrendAlert` interface from types/github.ts
