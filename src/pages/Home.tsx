@@ -180,13 +180,20 @@ function Home() {
             </button>
             <button
               onClick={() => setShowIgnoreList(true)}
-              className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
+              className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Ignore list"
               title="Ignore list"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
+              {(prefs.ignoredTopics.length + prefs.ignoredLanguages.length) > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
+                  {prefs.ignoredTopics.length + prefs.ignoredLanguages.length > 9
+                    ? '9+'
+                    : prefs.ignoredTopics.length + prefs.ignoredLanguages.length}
+                </span>
+              )}
             </button>
             <button
               onClick={toggleTheme}
