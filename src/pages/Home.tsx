@@ -10,6 +10,7 @@ import type { SortState } from '../hooks/useSort'
 import SearchInput from '../components/SearchInput'
 import RepoGrid from '../components/RepoGrid'
 import { formatNumber } from '../lib/utils'
+import LicenseLegend from '../components/LicenseLegend'
 
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
@@ -232,23 +233,26 @@ function Home() {
               )}
             </div>
 
-            <select
-              value={filters.licenseType}
-              onChange={(e) => updateFilters({ licenseType: e.target.value })}
-              className="px-3 py-1.5 bg-github-border border-0 rounded-lg text-sm text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
-              aria-label="Filter by license type"
-            >
-              <option value="all">All Licenses</option>
-              <option value="open_source">Open Source Only</option>
-              <option value="no_license">No License</option>
-              <optgroup label="Specific">
-                {COMMON_LICENSES.map((license) => (
-                  <option key={license} value={license}>
-                    {license}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+            <div className="flex items-center gap-1">
+              <select
+                value={filters.licenseType}
+                onChange={(e) => updateFilters({ licenseType: e.target.value })}
+                className="px-3 py-1.5 bg-github-border border-0 rounded-lg text-sm text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
+                aria-label="Filter by license type"
+              >
+                <option value="all">All Licenses</option>
+                <option value="open_source">Open Source Only</option>
+                <option value="no_license">No License</option>
+                <optgroup label="Specific">
+                  {COMMON_LICENSES.map((license) => (
+                    <option key={license} value={license}>
+                      {license}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <LicenseLegend />
+            </div>
 
             <div className="flex items-center gap-2">
               <label htmlFor="min-stars" className="text-sm text-github-muted">
