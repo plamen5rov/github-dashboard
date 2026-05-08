@@ -6,11 +6,14 @@ import type {
   StarTimelineEntry,
   RepositoryWithIntelligence,
   GrowthMetrics,
+  GraphQLRepositoryEnrichment,
 } from '../types/github'
 import { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, DEFAULT_PER_PAGE } from './constants'
 import type { BuildQueryOptions, SortField, SortOrder } from './utils'
 import { buildGitHubQuery, getAPISortField } from './utils'
 import { calculateGrowthMetrics } from './growth'
+import { evaluateDeveloperFilter } from './developerFilters'
+import type { DeveloperFilter } from '../hooks/useFilters'
 
 function getToken(): string | null {
   return localStorage.getItem('github_token') || import.meta.env.VITE_GITHUB_TOKEN || null
@@ -166,6 +169,82 @@ export async function enrichWithGraphQL(
   return result
 }
 
+export async function enrichWithDeveloperData(
+  repoNames: string[],
+): Promise<Map<string, import('../types/github').GraphQLRepositoryEnrichment>> {
+  if (repoNames.length === 0) return new Map()
+
+  const token = getToken()
+  if (!token) {
+    return new Map()
+  }
+
+  const repoQueries = repoNames
+    .map((fullName, i) => {
+      const [owner, name] = fullName.split('/')
+      return `
+        repo_${i}: repository(owner: "${owner}", name: "${name}") {
+          pullRequests(states: OPEN) { totalCount }
+          issues(states: OPEN) { totalCount }
+          issues(labels: ["good first issue"], states: OPEN) { totalCount }
+          primaryLanguage { name color }
+          mentionableUsers { totalCount }
+          defaultBranchRef {
+            target {
+              ... on Commit {
+                history(since: "${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}") {
+                  totalCount
+                }
+              }
+            }
+          }
+          releases(first: 1) { totalCount }
+          repositoryTopics(first: 10) { nodes { topic { name } } }
+          licenseInfo { spdxId }
+          isArchived
+          stargazerCount
+          forkCount
+        }
+      `
+    })
+    .join('\n')
+
+  const query = `query { ${repoQueries} }`
+
+  const response = await fetch(GITHUB_GRAPHQL_URL, {
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ query }),
+  })
+
+  if (!response.ok) {
+    return new Map()
+  }
+
+  const data = await response.json()
+  const result = new Map<string, import('../types/github').GraphQLRepositoryEnrichment>()
+
+  repoNames.forEach((fullName, i) => {
+    const repo = data.data?.[`repo_${i}`]
+    if (repo) {
+      result.set(fullName, {
+        openPRs: repo.pullRequests?.totalCount || 0,
+        openIssues: repo.issues?.totalCount || 0,
+        languageColor: repo.primaryLanguage?.color || null,
+        goodFirstIssueCount: repo.issues?.totalCount || 0,
+        contributorCount: repo.mentionableUsers?.totalCount || 0,
+        recentCommitCount: repo.defaultBranchRef?.target?.history?.totalCount || 0,
+        releaseCount: repo.releases?.totalCount || 0,
+        hasReadme: true,
+        hasTests: false,
+        dependencyCount: 0,
+      })
+    }
+  })
+
+  return result
+}
+
 export async function fetchRepos(
   options: BuildQueryOptions,
   sort: SortField,
@@ -303,7 +382,29 @@ export async function fetchReposWithIntelligence(
         ...repo,
         growth: intelligence.get(repo.fullName),
       }))
-      return { repos: reposWithIntelligence, totalCount, rateLimit }
+
+      let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
+      if (options.developerFilters && options.developerFilters.length > 0) {
+        try {
+          developerEnrichmentMap = await enrichWithDeveloperData(fullNames)
+        } catch {
+          // Developer data enrichment failed, continue without it
+        }
+      }
+
+      let filteredRepos = reposWithIntelligence
+      if (options.developerFilters && options.developerFilters.length > 0) {
+        const developerFilters = options.developerFilters as DeveloperFilter[]
+        filteredRepos = reposWithIntelligence.filter((repo) => {
+          const enrichment = developerEnrichmentMap.get(repo.fullName)
+          return developerFilters.every((filter) => {
+            const result = evaluateDeveloperFilter(filter, repo, enrichment)
+            return result.matches
+          })
+        })
+      }
+
+      return { repos: filteredRepos, totalCount: filteredRepos.length, rateLimit }
     } catch {
       // Intelligence enrichment failed, return without growth data
     }

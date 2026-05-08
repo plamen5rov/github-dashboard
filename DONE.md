@@ -1,5 +1,16 @@
 # DONE.md — Changelog
 
+## Phase 11: Developer-Centric Filters
+- [2026-05-08] Added 11 developer-centric filter types: beginner_friendly, good_first_issue, actively_maintained, solo_maintained, production_ready, ai_related, indie_project, new_exploding, low_competition, enterprise_grade, lightweight
+- [2026-05-08] Created `developerFilters.ts` with detection logic for each filter using repo metadata, topics, descriptions, and GraphQL enrichment data
+- [2026-05-08] Updated FilterState to include `developerFilters` array, synced with URL search params
+- [2026-05-08] Updated `buildGitHubQuery` to map developer filters to GitHub API search qualifiers (good first issue labels, AI/enterprise/lightweight topics)
+- [2026-05-08] Created `enrichWithDeveloperData` GraphQL function fetching: good first issue count, contributor count, recent commits, releases, readme status
+- [2026-05-08] Built `DeveloperFilterBar` component with chip-style toggle buttons, icons, and tooltips
+- [2026-05-08] Integrated DeveloperFilterBar into Home page below topics section
+- [2026-05-08] Updated RepoCard to display developer-centric badges when filters are active
+- [2026-05-08] Added 23 tests for developer filter evaluation logic (73 tests total passing)
+
 ## Phase 10: Repository Intelligence Layer
 - [2025-05-08] Added GrowthMetrics type with stars gained (today/week/month), velocity, trend detection, momentum score
 - [2025-05-08] Implemented star timeline fetching from GitHub API (`/repos/{owner}/{repo}/stargazers`) with in-memory caching

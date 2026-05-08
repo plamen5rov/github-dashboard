@@ -128,3 +128,16 @@ export interface GrowthMetrics {
 export interface RepositoryWithIntelligence extends Repository {
   growth?: GrowthMetrics
 }
+
+export interface GraphQLRepositoryEnrichment {
+  openPRs: number
+  openIssues: number
+  languageColor: string | null
+  goodFirstIssueCount: number
+  contributorCount: number
+  recentCommitCount: number
+  releaseCount: number
+  hasReadme: boolean
+  hasTests: boolean
+  dependencyCount: number
+}

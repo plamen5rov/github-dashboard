@@ -64,3 +64,19 @@ export const DEFAULT_PER_PAGE = 30
 export const GITHUB_API_BASE = 'https://api.github.com'
 
 export const GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql'
+
+export const DEVELOPER_FILTERS = {
+  beginner_friendly: { label: 'Beginner-friendly', icon: '🌱', description: 'Low complexity, good docs' },
+  good_first_issue: { label: 'Good First Issue', icon: '🎯', description: 'Has good-first-issue labels' },
+  actively_maintained: { label: 'Actively Maintained', icon: '🔧', description: 'Recent commits, active contributors' },
+  solo_maintained: { label: 'Solo Project', icon: '👤', description: 'Single maintainer' },
+  production_ready: { label: 'Production Ready', icon: '🚀', description: 'Stable, well-tested, widely used' },
+  ai_related: { label: 'AI/ML', icon: '🤖', description: 'Artificial intelligence / machine learning' },
+  indie_project: { label: 'Indie Project', icon: '🎨', description: 'Small, creative, independent' },
+  new_exploding: { label: 'New & Exploding', icon: '💥', description: 'Recently created, rapid growth' },
+  low_competition: { label: 'Low Competition', icon: '💎', description: 'Undiscovered gems' },
+  enterprise_grade: { label: 'Enterprise', icon: '🏢', description: 'Large-scale, robust, corporate use' },
+  lightweight: { label: 'Lightweight', icon: '🪶', description: 'Small footprint, minimal dependencies' },
+} as const
+
+export type DeveloperFilterKey = keyof typeof DEVELOPER_FILTERS

@@ -2,6 +2,19 @@ import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { TimeRange } from '../lib/constants'
 
+export type DeveloperFilter =
+  | 'beginner_friendly'
+  | 'good_first_issue'
+  | 'actively_maintained'
+  | 'solo_maintained'
+  | 'production_ready'
+  | 'ai_related'
+  | 'indie_project'
+  | 'new_exploding'
+  | 'low_competition'
+  | 'enterprise_grade'
+  | 'lightweight'
+
 export interface FilterState {
   timeRange: TimeRange
   language: string[]
@@ -11,6 +24,7 @@ export interface FilterState {
   includeArchived: boolean
   includeForks: boolean
   keyword: string
+  developerFilters: DeveloperFilter[]
 }
 
 const DEFAULT_FILTERS: FilterState = {
@@ -22,6 +36,7 @@ const DEFAULT_FILTERS: FilterState = {
   includeArchived: false,
   includeForks: false,
   keyword: '',
+  developerFilters: [],
 }
 
 function parseFilters(searchParams: URLSearchParams): FilterState {
@@ -34,6 +49,7 @@ function parseFilters(searchParams: URLSearchParams): FilterState {
     includeArchived: searchParams.get('includeArchived') === 'true',
     includeForks: searchParams.get('includeForks') === 'true',
     keyword: searchParams.get('keyword') || '',
+    developerFilters: searchParams.getAll('developerFilters') as DeveloperFilter[],
   }
 }
 
@@ -72,6 +88,7 @@ export function useFilters() {
     if (filters.includeArchived) count++
     if (filters.includeForks) count++
     if (filters.keyword) count++
+    if (filters.developerFilters.length > 0) count++
     return count
   }, [filters])
 

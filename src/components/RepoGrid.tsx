@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react'
-import type { Repository } from '../types/github'
+import type { RepositoryWithIntelligence } from '../types/github'
+import type { DeveloperFilter } from '../hooks/useFilters'
 import RepoCard from './RepoCard'
 
 interface RepoGridProps {
-  repos: Repository[]
+  repos: RepositoryWithIntelligence[]
   hasNextPage: boolean
   isFetchingNextPage: boolean
   isLoading: boolean
   fetchNextPage: () => void
   onTopicClick: (topic: string) => void
+  activeDeveloperFilters?: DeveloperFilter[]
 }
 
 function RepoGrid({
@@ -18,6 +20,7 @@ function RepoGrid({
   isLoading,
   fetchNextPage,
   onTopicClick,
+  activeDeveloperFilters = [],
 }: RepoGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -73,7 +76,7 @@ function RepoGrid({
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {repos.map((repo) => (
-          <RepoCard key={repo.id} repo={repo} onTopicClick={onTopicClick} />
+          <RepoCard key={repo.id} repo={repo} onTopicClick={onTopicClick} activeDeveloperFilters={activeDeveloperFilters} />
         ))}
       </div>
       <div ref={sentinelRef} className="h-4 mt-4" aria-hidden="true" />

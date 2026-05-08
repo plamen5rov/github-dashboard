@@ -14,6 +14,7 @@ interface UseReposOptions {
   topics?: string[]
   includeArchived?: boolean
   includeForks?: boolean
+  developerFilters?: string[]
   sort: SortField
   order: SortOrder
 }
@@ -34,6 +35,7 @@ export function useRepos(options: UseReposOptions) {
     topics: options.topics,
     includeArchived: options.includeArchived,
     includeForks: options.includeForks,
+    developerFilters: options.developerFilters,
   }
 
   const queryKey = ['repos', queryOptions, options.sort, options.order]

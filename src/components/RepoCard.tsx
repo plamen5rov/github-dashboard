@@ -3,13 +3,20 @@ import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
 import RepositoryInsight from './RepositoryInsight'
 import { formatNumber, formatRelativeTime } from '../lib/utils'
+import { evaluateDeveloperFilter } from '../lib/developerFilters'
+import type { DeveloperFilter } from '../hooks/useFilters'
 
 interface RepoCardProps {
   repo: RepositoryWithIntelligence
   onTopicClick: (topic: string) => void
+  activeDeveloperFilters?: DeveloperFilter[]
 }
 
-function RepoCard({ repo, onTopicClick }: RepoCardProps) {
+function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardProps) {
+  const developerBadges = activeDeveloperFilters
+    .map((filter) => evaluateDeveloperFilter(filter, repo))
+    .filter((result) => result.badge)
+
   return (
     <article className="flex flex-col p-5 bg-github-darker border border-github-border rounded-xl hover:border-github-accent/50 transition-colors">
       <div className="flex items-start gap-3 mb-3">
@@ -40,6 +47,20 @@ function RepoCard({ repo, onTopicClick }: RepoCardProps) {
         <LanguageBadge language={repo.language} color={repo.languageColor} />
         <LicenseBadge spdxId={repo.license?.spdxId || null} name={repo.license?.name || null} />
       </div>
+
+      {developerBadges.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {developerBadges.map((result, i) => (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${result.badge!.color} bg-github-dark/50 border border-github-border`}
+            >
+              <span>{result.badge!.icon}</span>
+              <span>{result.badge!.label}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-4 text-sm text-github-muted mb-3">
         <span className="flex items-center gap-1" title={`${repo.stars} stars`}>

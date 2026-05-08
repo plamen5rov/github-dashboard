@@ -7,10 +7,12 @@ import { useTheme } from '../hooks/useTheme'
 import { TIME_RANGES, SORT_OPTIONS, COMMON_LICENSES } from '../lib/constants'
 import type { TimeRange } from '../lib/constants'
 import type { SortState } from '../hooks/useSort'
+import type { DeveloperFilter } from '../hooks/useFilters'
 import SearchInput from '../components/SearchInput'
 import RepoGrid from '../components/RepoGrid'
 import { formatNumber } from '../lib/utils'
 import LicenseLegend from '../components/LicenseLegend'
+import DeveloperFilterBar from '../components/DeveloperFilterBar'
 
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
@@ -77,6 +79,7 @@ function Home() {
     topics: filters.topics,
     includeArchived: filters.includeArchived,
     includeForks: filters.includeForks,
+    developerFilters: filters.developerFilters,
     sort: sort.field,
     order: sort.order,
   })
@@ -85,6 +88,15 @@ function Home() {
     if (!filters.topics.includes(topic)) {
       updateFilters({ topics: [...filters.topics, topic] })
     }
+  }
+
+  const toggleDeveloperFilter = (filter: DeveloperFilter) => {
+    const exists = filters.developerFilters.includes(filter)
+    updateFilters({
+      developerFilters: exists
+        ? filters.developerFilters.filter((f) => f !== filter)
+        : [...filters.developerFilters, filter],
+    })
   }
 
   const isRateLimitError =
@@ -328,6 +340,13 @@ function Home() {
               aria-label="Add topic filter"
             />
           </div>
+
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-github-border">
+            <DeveloperFilterBar
+              activeFilters={filters.developerFilters}
+              onToggle={toggleDeveloperFilter}
+            />
+          </div>
         </div>
 
         {isError && (
@@ -358,6 +377,7 @@ function Home() {
           isLoading={isLoading}
           fetchNextPage={fetchNextPage}
           onTopicClick={handleTopicClick}
+          activeDeveloperFilters={filters.developerFilters}
         />
       </main>
     </div>
