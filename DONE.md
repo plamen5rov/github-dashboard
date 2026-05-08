@@ -44,6 +44,16 @@
 - [2026-05-08] Fixed `totalCount` bug: was using `finalRepos.length` instead of API total, killing pagination when client-side filters removed all page-1 repos
 - [2026-05-08] Fixed pagination stop condition: uses `rawCount === 0` (API exhausted) instead of `loadedCount >= totalCount`
 
+## Phase 17: Remove Dead Trend Alerts Feature
+- [2026-05-08] Removed `TrendAlert` interface from types/github.ts
+- [2026-05-08] Removed `alerts`/`alertThreshold` from `UserPreferences`
+- [2026-05-08] Removed 5 unused alert CRUD functions from userPreferences.ts
+- [2026-05-08] Removed alert callbacks and `unreadAlertCount` from usePersonalization.ts
+- [2026-05-08] Deleted TrendAlerts.tsx component (127 lines, never populated by any trigger logic)
+- [2026-05-08] Removed bell icon button and TrendAlerts modal from Home.tsx header
+- [2026-05-08] Updated FollowedTopicsManager empty state text (removed "trend alerts" reference)
+- [2026-05-08] 75 tests passing, 0 TypeScript errors
+
 ## Phase 13: Documentation
 - [2026-05-08] Created comprehensive README.md with feature descriptions, icons, project structure, setup guide, and testing docs (files modified: README.md)
 
