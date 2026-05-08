@@ -86,6 +86,7 @@ export interface Repository {
   openPRs: number
   pushedAt: string
   updatedAt: string
+  createdAt: string
   language: string | null
   languageColor: string | null
   license: {

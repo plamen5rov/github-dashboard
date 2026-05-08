@@ -68,6 +68,7 @@ function normalizeRepo(rest: GitHubRepositoryREST): Repository {
     openPRs: 0,
     pushedAt: rest.pushed_at,
     updatedAt: rest.updated_at,
+    createdAt: rest.created_at,
     language: rest.language,
     languageColor: null,
     license: rest.license
@@ -207,16 +208,23 @@ async function fetchStarTimeline(fullName: string): Promise<StarTimelineEntry[]>
   const token = getToken()
   if (!token) return []
 
-  const params = new URLSearchParams({
-    per_page: '100',
-    page: '1',
-  })
+  const [owner, name] = fullName.split('/')
+  const query = `
+    query {
+      repository(owner: "${owner}", name: "${name}") {
+        stargazers(first: 100, orderBy: { field: STARRED_AT, direction: DESC }) {
+          edges {
+            starredAt
+          }
+        }
+      }
+    }
+  `
 
-  const url = `${GITHUB_API_BASE}/repos/${fullName}/stargazers?${params.toString()}`
-  const response = await fetch(url, {
-    headers: getHeaders({
-      'Accept': 'application/vnd.github.star+json',
-    }),
+  const response = await fetch(GITHUB_GRAPHQL_URL, {
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ query }),
   })
 
   if (!response.ok) {
@@ -224,9 +232,14 @@ async function fetchStarTimeline(fullName: string): Promise<StarTimelineEntry[]>
     return []
   }
 
-  const data: StarTimelineEntry[] = await response.json()
-  starTimelineCache.set(fullName, data)
-  return data
+  const data = await response.json()
+  const edges = data.data?.repository?.stargazers?.edges || []
+  const timeline: StarTimelineEntry[] = edges.map((edge: { starredAt: string }) => ({
+    starred_at: edge.starredAt,
+  }))
+
+  starTimelineCache.set(fullName, timeline)
+  return timeline
 }
 
 export async function enrichWithIntelligence(
@@ -241,11 +254,10 @@ export async function enrichWithIntelligence(
     try {
       const starTimeline = await fetchStarTimeline(repo.fullName)
 
-      const createdDate = repo.pushedAt
       const metrics = calculateGrowthMetrics(
         starTimeline,
         repo.stars,
-        createdDate,
+        repo.createdAt,
         repo.pushedAt,
       )
 

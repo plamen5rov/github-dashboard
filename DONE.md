@@ -1,5 +1,15 @@
 # DONE.md — Changelog
 
+## Phase 10: Repository Intelligence Layer
+- [2025-05-08] Added GrowthMetrics type with stars gained (today/week/month), velocity, trend detection, momentum score
+- [2025-05-08] Implemented star timeline fetching from GitHub API (`/repos/{owner}/{repo}/stargazers`) with in-memory caching
+- [2025-05-08] Created `calculateGrowthMetrics` utility for velocity and momentum score computation
+- [2025-05-08] Built RepositoryInsight component displaying growth indicators, trend labels, and trending topics
+- [2025-05-08] Integrated intelligence enrichment into `fetchReposWithIntelligence` (replaces `fetchRepos`)
+- [2025-05-08] Updated useRepos hook to use new intelligence-aware fetcher
+- [2025-05-08] Updated RepoCard to show RepositoryInsight when growth data is available
+- [2025-05-08] Added 7 new tests for growth calculation utilities (50 tests total passing)
+
 ## Phase 9: Responsive Layout Adjustments and Final Polish
 - [2025-05-07] Stacked time range and sort controls vertically on mobile (`sm:flex-row`)
 - [2025-05-07] Shortened checkbox labels on small screens (Archived/Forks) with full labels on desktop
