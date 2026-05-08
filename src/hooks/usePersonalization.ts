@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import type { UserPreferences, TrendAlert } from '../types/github'
+import type { UserPreferences } from '../types/github'
 import {
   loadPreferences,
   toggleBookmark as toggleBookmarkFn,
@@ -16,11 +16,6 @@ import {
   unignoreTopic as unignoreTopicFn,
   ignoreLanguage as ignoreLanguageFn,
   unignoreLanguage as unignoreLanguageFn,
-  addAlert as addAlertFn,
-  markAlertRead as markAlertReadFn,
-  markAllAlertsRead as markAllAlertsReadFn,
-  clearReadAlerts as clearReadAlertsFn,
-  getUnreadAlertCount as getUnreadAlertCountFn,
 } from '../lib/userPreferences'
 
 export function usePersonalization() {
@@ -108,29 +103,6 @@ export function usePersonalization() {
     setPrefs(loadPreferences())
   }, [])
 
-  const addAlert = useCallback((alert: Omit<TrendAlert, 'id' | 'timestamp' | 'read'>) => {
-    const newAlert = addAlertFn(alert)
-    setPrefs(loadPreferences())
-    return newAlert
-  }, [])
-
-  const markAlertRead = useCallback((id: string) => {
-    markAlertReadFn(id)
-    setPrefs(loadPreferences())
-  }, [])
-
-  const markAllAlertsRead = useCallback(() => {
-    markAllAlertsReadFn()
-    setPrefs(loadPreferences())
-  }, [])
-
-  const clearReadAlerts = useCallback(() => {
-    clearReadAlertsFn()
-    setPrefs(loadPreferences())
-  }, [])
-
-  const unreadAlertCount = getUnreadAlertCountFn()
-
   return {
     prefs,
     refresh,
@@ -148,10 +120,5 @@ export function usePersonalization() {
     unignoreTopic,
     ignoreLanguage,
     unignoreLanguage,
-    addAlert,
-    markAlertRead,
-    markAllAlertsRead,
-    clearReadAlerts,
-    unreadAlertCount,
   }
 }

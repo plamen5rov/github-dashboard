@@ -130,16 +130,6 @@ export interface Watchlist {
   newMatches: string[]
 }
 
-export interface TrendAlert {
-  id: string
-  type: 'bookmark_spike' | 'collection_trending' | 'watchlist_match' | 'followed_topic_hot'
-  title: string
-  message: string
-  repoFullName?: string
-  timestamp: string
-  read: boolean
-}
-
 export interface UserPreferences {
   followedTopics: string[]
   ignoredTopics: string[]
@@ -147,6 +137,4 @@ export interface UserPreferences {
   bookmarks: Bookmark[]
   collections: Collection[]
   watchlists: Watchlist[]
-  alerts: TrendAlert[]
-  alertThreshold: number
 }

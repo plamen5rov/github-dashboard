@@ -1,4 +1,4 @@
-import type { UserPreferences, Collection, Watchlist, TrendAlert } from '../types/github'
+import type { UserPreferences, Collection, Watchlist } from '../types/github'
 
 const STORAGE_KEY = 'github_dashboard_preferences'
 
@@ -9,8 +9,6 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   bookmarks: [],
   collections: [],
   watchlists: [],
-  alerts: [],
-  alertThreshold: 50,
 }
 
 export function loadPreferences(): UserPreferences {
@@ -157,44 +155,3 @@ export function unignoreLanguage(language: string): void {
   savePreferences({ ignoredLanguages: prefs.ignoredLanguages })
 }
 
-export function addAlert(alert: Omit<TrendAlert, 'id' | 'timestamp' | 'read'>): TrendAlert {
-  const prefs = loadPreferences()
-  const newAlert: TrendAlert = {
-    ...alert,
-    id: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
-    read: false,
-  }
-  prefs.alerts.unshift(newAlert)
-  if (prefs.alerts.length > 50) {
-    prefs.alerts = prefs.alerts.slice(0, 50)
-  }
-  savePreferences({ alerts: prefs.alerts })
-  return newAlert
-}
-
-export function markAlertRead(id: string): void {
-  const prefs = loadPreferences()
-  const alert = prefs.alerts.find((a) => a.id === id)
-  if (alert) {
-    alert.read = true
-    savePreferences({ alerts: prefs.alerts })
-  }
-}
-
-export function markAllAlertsRead(): void {
-  const prefs = loadPreferences()
-  prefs.alerts.forEach((a) => (a.read = true))
-  savePreferences({ alerts: prefs.alerts })
-}
-
-export function clearReadAlerts(): void {
-  const prefs = loadPreferences()
-  prefs.alerts = prefs.alerts.filter((a) => !a.read)
-  savePreferences({ alerts: prefs.alerts })
-}
-
-export function getUnreadAlertCount(): number {
-  const prefs = loadPreferences()
-  return prefs.alerts.filter((a) => !a.read).length
-}

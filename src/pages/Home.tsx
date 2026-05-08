@@ -17,21 +17,19 @@ import DeveloperFilterBar from '../components/DeveloperFilterBar'
 import CollectionsPanel from '../components/CollectionsPanel'
 import FollowedTopicsManager from '../components/FollowedTopicsManager'
 import IgnoreListManager from '../components/IgnoreListManager'
-import TrendAlerts from '../components/TrendAlerts'
 import BookmarksPanel from '../components/BookmarksPanel'
 
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
   const { sort, setSort, toggleOrder } = useSort()
   const { theme, toggleTheme } = useTheme()
-  const { unreadAlertCount, prefs } = usePersonalization()
+  const { prefs } = usePersonalization()
   const [showLanguagePicker, setShowLanguagePicker] = useState(false)
   const [topicInput, setTopicInput] = useState('')
   const langPickerRef = useRef<HTMLDivElement>(null)
   const [showCollections, setShowCollections] = useState(false)
   const [showFollowedTopics, setShowFollowedTopics] = useState(false)
   const [showIgnoreList, setShowIgnoreList] = useState(false)
-  const [showAlerts, setShowAlerts] = useState(false)
   const [showBookmarks, setShowBookmarks] = useState(false)
 
   const POPULAR_LANGUAGES = [
@@ -147,20 +145,6 @@ function Home() {
               {prefs.bookmarks.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-yellow-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
                   {prefs.bookmarks.length > 9 ? '9+' : prefs.bookmarks.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setShowAlerts(true)}
-              className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"
-              aria-label="Trend alerts"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {unreadAlertCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-github-accent rounded-full text-white text-xs flex items-center justify-center font-medium">
-                  {unreadAlertCount > 9 ? '9+' : unreadAlertCount}
                 </span>
               )}
             </button>
@@ -487,7 +471,6 @@ function Home() {
       <CollectionsPanel isOpen={showCollections} onClose={() => setShowCollections(false)} onTopicClick={handleTopicClick} />
       <FollowedTopicsManager isOpen={showFollowedTopics} onClose={() => setShowFollowedTopics(false)} />
       <IgnoreListManager isOpen={showIgnoreList} onClose={() => setShowIgnoreList(false)} />
-      <TrendAlerts isOpen={showAlerts} onClose={() => setShowAlerts(false)} />
       <BookmarksPanel isOpen={showBookmarks} onClose={() => setShowBookmarks(false)} onTopicClick={handleTopicClick} />
     </div>
   )
