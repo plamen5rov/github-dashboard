@@ -6,6 +6,7 @@ import { formatNumber, formatRelativeTime } from '../lib/utils'
 import { evaluateDeveloperFilter } from '../lib/developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import { usePersonalization } from '../hooks/usePersonalization'
+import { useState, useRef, useEffect } from 'react'
 
 interface RepoCardProps {
   repo: RepositoryWithIntelligence
@@ -14,8 +15,22 @@ interface RepoCardProps {
 }
 
 function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardProps) {
-  const { toggleBookmark, isBookmarked } = usePersonalization()
+  const { toggleBookmark, isBookmarked, prefs, addToCollection } = usePersonalization()
   const bookmarked = isBookmarked(repo.fullName)
+  const [showCollectionDropdown, setShowCollectionDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowCollectionDropdown(false)
+      }
+    }
+    if (showCollectionDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCollectionDropdown])
 
   const developerBadges = activeDeveloperFilters
     .map((filter) => evaluateDeveloperFilter(filter, repo))
@@ -40,20 +55,71 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
             >
               {repo.fullName}
             </a>
-            <button
-              onClick={() => toggleBookmark(repo.fullName)}
-              className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
-                bookmarked
-                  ? 'text-yellow-400 hover:text-yellow-300'
-                  : 'text-github-muted hover:text-github-text'
-              }`}
-              aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this repo'}
-              title={bookmarked ? 'Bookmarked' : 'Bookmark'}
-            >
-              <svg className="w-5 h-5" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <div ref={dropdownRef} className="relative">
+                <button
+                  onClick={() => setShowCollectionDropdown(!showCollectionDropdown)}
+                  className="p-1 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded transition-colors"
+                  aria-label="Add to collection"
+                  title="Add to collection"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </button>
+                {showCollectionDropdown && (
+                  <div className="absolute right-0 z-20 mt-2 w-56 bg-github-dark border border-github-border rounded-lg shadow-xl overflow-hidden">
+                    <div className="p-2 border-b border-github-border">
+                      <p className="text-xs text-github-muted font-medium">Add to collection</p>
+                    </div>
+                    {prefs.collections.length === 0 ? (
+                      <div className="p-3 text-xs text-github-muted text-center">
+                        No collections yet
+                      </div>
+                    ) : (
+                      <div className="max-h-48 overflow-y-auto">
+                        {prefs.collections.map((collection) => {
+                          const isInCollection = collection.repoFullNames.includes(repo.fullName)
+                          return (
+                            <button
+                              key={collection.id}
+                              onClick={() => {
+                                addToCollection(collection.id, repo.fullName)
+                                setShowCollectionDropdown(false)
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-github-border transition-colors flex items-center justify-between gap-2 ${
+                                isInCollection ? 'text-github-accent' : 'text-github-text'
+                              }`}
+                            >
+                              <span className="truncate">{collection.name}</span>
+                              {isInCollection && (
+                                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => toggleBookmark(repo.fullName)}
+                className={`p-1 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                  bookmarked
+                    ? 'text-yellow-400 hover:text-yellow-300'
+                    : 'text-github-muted hover:text-github-text'
+                }`}
+                aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this repo'}
+                title={bookmarked ? 'Bookmarked' : 'Bookmark'}
+              >
+                <svg className="w-5 h-5" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+            </div>
           </div>
           {repo.description && (
             <p className="text-sm text-github-muted line-clamp-2 mt-1">

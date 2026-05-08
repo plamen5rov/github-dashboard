@@ -18,6 +18,7 @@ import CollectionsPanel from '../components/CollectionsPanel'
 import FollowedTopicsManager from '../components/FollowedTopicsManager'
 import IgnoreListManager from '../components/IgnoreListManager'
 import TrendAlerts from '../components/TrendAlerts'
+import BookmarksPanel from '../components/BookmarksPanel'
 
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
@@ -31,6 +32,7 @@ function Home() {
   const [showFollowedTopics, setShowFollowedTopics] = useState(false)
   const [showIgnoreList, setShowIgnoreList] = useState(false)
   const [showAlerts, setShowAlerts] = useState(false)
+  const [showBookmarks, setShowBookmarks] = useState(false)
 
   const POPULAR_LANGUAGES = [
     'TypeScript', 'JavaScript', 'Python', 'Rust', 'Go',
@@ -132,6 +134,21 @@ function Home() {
                 )}
               </span>
             )}
+            <button
+              onClick={() => setShowBookmarks(true)}
+              className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
+              aria-label="Bookmarks"
+              title="Bookmarks"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              {prefs.bookmarks.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-yellow-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
+                  {prefs.bookmarks.length > 9 ? '9+' : prefs.bookmarks.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => setShowAlerts(true)}
               className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"
@@ -439,6 +456,7 @@ function Home() {
       <FollowedTopicsManager isOpen={showFollowedTopics} onClose={() => setShowFollowedTopics(false)} />
       <IgnoreListManager isOpen={showIgnoreList} onClose={() => setShowIgnoreList(false)} />
       <TrendAlerts isOpen={showAlerts} onClose={() => setShowAlerts(false)} />
+      <BookmarksPanel isOpen={showBookmarks} onClose={() => setShowBookmarks(false)} onTopicClick={handleTopicClick} />
     </div>
   )
 }

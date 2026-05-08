@@ -11,6 +11,10 @@
 - [2026-05-08] Built TrendAlerts notification system with read/unread states
 - [2026-05-08] Integrated ignored topics/languages into GitHub API query filtering
 - [2026-05-08] Added personalization icons to header: collections, topics, ignore list, alerts bell with unread badge
+- [2026-05-08] Added BookmarksPanel to view all saved repos with full repo details
+- [2026-05-08] Added "Add to Collection" dropdown on RepoCard with checkmarks for existing collections
+- [2026-05-08] Added bookmark count badge to header bookmark icon
+- [2026-05-08] Added fetchRepoByFullName API function for fetching individual repos
 - [2026-05-08] 73 tests passing
 
 ## Phase 11: Developer-Centric Filters

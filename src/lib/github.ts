@@ -20,6 +20,8 @@ function getToken(): string | null {
   return localStorage.getItem('github_token') || import.meta.env.VITE_GITHUB_TOKEN || null
 }
 
+export { getToken }
+
 function getHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github+json',
@@ -277,6 +279,33 @@ export async function fetchRepos(
 }
 
 export { extractRateLimit }
+
+export async function fetchRepoByFullName(fullName: string): Promise<RepositoryWithIntelligence | null> {
+  const [owner, name] = fullName.split('/')
+  const url = `${GITHUB_API_BASE}/repos/${owner}/${name}`
+  const response = await fetch(url, { headers: getHeaders() })
+
+  if (!response.ok) return null
+
+  const data = await response.json()
+  const repo = normalizeRepo(data)
+
+  const token = getToken()
+  if (token) {
+    try {
+      const enriched = await enrichWithGraphQL([fullName])
+      const extra = enriched.get(fullName)
+      if (extra) {
+        repo.openPRs = extra.openPRs
+        repo.languageColor = extra.languageColor
+      }
+    } catch {
+      // Skip enrichment
+    }
+  }
+
+  return { ...repo, growth: undefined }
+}
 
 const starTimelineCache = new Map<string, StarTimelineEntry[]>()
 
