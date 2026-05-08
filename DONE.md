@@ -63,6 +63,10 @@
 ## Phase 21: Language Dropdown Arrow
 - [2026-05-08] Added chevron-down SVG arrow to Language button to visually indicate it's a dropdown (files modified: Home.tsx)
 
+## Phase 22: Star Range & Ignored Languages Query Fixes
+- [2026-05-08] Fixed "Min stars" filter being ignored — `stars:>=N` now replaces default `stars:>50` instead of adding a duplicate qualifier (GitHub ignores duplicate star qualifiers) (files modified: utils.ts, utils.test.ts)
+- [2026-05-08] Fixed ignored languages using AND-syntax in negation group — switched to separate `-language:X` per language (files modified: github.ts)
+
 ## Phase 17: Remove Dead Trend Alerts Feature
 - [2026-05-08] Removed `TrendAlert` interface from types/github.ts
 - [2026-05-08] Removed `alerts`/`alertThreshold` from `UserPreferences`

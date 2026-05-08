@@ -63,10 +63,6 @@ export function buildGitHubQuery(options: BuildQueryOptions): string {
     }
   }
 
-  if (options.minStars && options.minStars > 0) {
-    parts.push(`stars:>=${options.minStars}`)
-  }
-
   if (options.topics && options.topics.length > 0) {
     options.topics.forEach((topic) => {
       parts.push(`topic:${topic}`)
@@ -83,6 +79,8 @@ export function buildGitHubQuery(options: BuildQueryOptions): string {
 
   if (options.developerFilters?.includes('low_competition')) {
     parts.push('stars:100..14999')
+  } else if (options.minStars && options.minStars > 0) {
+    parts.push(`stars:>=${options.minStars}`)
   } else {
     parts.push('stars:>50')
   }

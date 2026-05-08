@@ -89,6 +89,7 @@ describe('buildGitHubQuery', () => {
   it('adds min stars filter', () => {
     const query = buildGitHubQuery({ timeRange: 'week', minStars: 1000 })
     expect(query).toContain('stars:>=1000')
+    expect(query).not.toContain('stars:>50')
   })
 
   it('adds topic filters', () => {

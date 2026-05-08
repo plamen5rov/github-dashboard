@@ -406,11 +406,11 @@ export async function fetchReposWithIntelligence(
   const prefs = loadPreferences()
 
   if (prefs.ignoredLanguages && prefs.ignoredLanguages.length > 0) {
-    const ignoredLangs = prefs.ignoredLanguages.map((l) => `language:${l.toLowerCase()}`).join(' ')
+    const ignoredLangs = prefs.ignoredLanguages.map((l) => `-language:${l.toLowerCase()}`).join(' ')
     if (options.keyword) {
-      options.keyword = `${options.keyword} -(${ignoredLangs})`
+      options.keyword = `${options.keyword} ${ignoredLangs}`
     } else {
-      options.keyword = `-(${ignoredLangs})`
+      options.keyword = ignoredLangs
     }
   }
 
