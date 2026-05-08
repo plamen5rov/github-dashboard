@@ -49,6 +49,7 @@
 - [2026-05-08] Added red count badge to Ignore List header button (files modified: Home.tsx)
 - [2026-05-08] Increased rate limit display font size (`text-xs` → `text-sm`) and added red color when remaining ≤ 10 (files modified: Home.tsx)
 - [2026-05-08] Increased title font size (`text-xl` → `text-2xl`) and added subtitle describing app features (files modified: Home.tsx)
+- [2026-05-08] Added explanation in README for why time range maxes at 30 days (files modified: README.md)
 
 ## Phase 17: Remove Dead Trend Alerts Feature
 - [2026-05-08] Removed `TrendAlert` interface from types/github.ts

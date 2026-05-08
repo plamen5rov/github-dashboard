@@ -18,6 +18,10 @@ Discover repositories updated in the last **24 hours**, **7 days**, or
 **30 days** sorted by stars — no GitHub trending page needed.
 
 - ⏱️ Time range selector: **Today** / **This Week** / **This Month**
+- > ⏱️ 30 days is the upper limit because GitHub has no official trending API.
+  > Beyond a month, `pushed:>YYYY-MM-DD stars:>50 sort:stars` returns the
+  > all-time most-starred repos (React, Vue, etc.) every time — the "trending"
+  > signal disappears. Shorter windows surface repos actively gaining traction.
 - ♾️ Infinite scroll pagination via `IntersectionObserver`
 - 📱 Fully responsive: 1 column (mobile), 2 columns (tablet), 3 columns (desktop)
 
