@@ -27,6 +27,16 @@
 - [2026-05-08] Added batch GraphQL README fetching in `enrichWithReadmeText` for client-side language classification
 - [2026-05-08] Added 12 tests for `detectReadmeLanguage` covering English, Chinese, Cyrillic, code-block stripping, and edge cases (81 tests total passing)
 
+## Phase 15: Codebase Cleanup
+- [2026-05-08] Deleted 6 unused files: FilterBar.tsx, SortControls.tsx, SortControls.test.tsx, vite.svg, hero.png, icons.svg
+- [2026-05-08] Removed unused `name` prop from LicenseBadge component and callers (BookmarksPanel, CollectionsPanel, RepoCard)
+- [2026-05-08] Removed dead exports: GraphQLRepository, GraphQLSearchResponse, GitHubLanguage (types); OSI_APPROVED_LICENSES, DeveloperFilterKey (constants); fetchRepos, extractRateLimit (github.ts)
+- [2026-05-08] Removed `export` from 4 internal-only functions in github.ts (searchRepositories, enrichWithGraphQL, enrichWithDeveloperData, enrichWithIntelligence)
+- [2026-05-08] Removed unused `enrichment` param from 6 developer filter evaluators (beginner_friendly, ai_related, production_ready, new_exploding, low_competition, lightweight)
+- [2026-05-08] Removed unused variables/imports: subDays/subHours in growth.ts, formatDistanceToNow/parseISO in growth.test.ts, savePreferences in usePersonalization.ts, totalCount in github.ts, hasReleases/hasTests in developerFilters.ts
+- [2026-05-08] Added missing `createdAt` field to RepoCard test mock
+- [2026-05-08] 75 tests passing, 0 TypeScript errors (down from 13)
+
 ## Phase 13: Documentation
 - [2026-05-08] Created comprehensive README.md with feature descriptions, icons, project structure, setup guide, and testing docs (files modified: README.md)
 
