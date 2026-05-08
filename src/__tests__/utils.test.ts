@@ -131,6 +131,12 @@ describe('buildGitHubQuery', () => {
     const query = buildGitHubQuery({ timeRange: 'week', licenseType: 'MIT' })
     expect(query).toContain('license:mit')
   })
+
+  it('uses single range syntax for low competition filter', () => {
+    const query = buildGitHubQuery({ timeRange: 'week', developerFilters: ['low_competition'] })
+    expect(query).toContain('stars:100..14999')
+    expect(query).not.toContain('stars:>50')
+  })
 })
 
 describe('isOSILicense', () => {

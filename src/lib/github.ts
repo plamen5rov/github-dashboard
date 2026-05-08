@@ -414,7 +414,7 @@ export async function fetchReposWithIntelligence(
     }
   }
 
-  const { repos, rateLimit } = await searchRepositories(options, sort, order, page)
+  const { repos, totalCount: apiTotalCount, rateLimit } = await searchRepositories(options, sort, order, page)
 
   const filteredRepos = repos.filter((repo) => {
     if (prefs.ignoredTopics && prefs.ignoredTopics.length > 0) {
@@ -486,7 +486,7 @@ export async function fetchReposWithIntelligence(
         }
       }
 
-      return { repos: finalRepos, totalCount: finalRepos.length, rateLimit }
+      return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
     } catch {
       // Intelligence enrichment failed, return without growth data
     }
@@ -513,5 +513,5 @@ export async function fetchReposWithIntelligence(
     }
   }
 
-  return { repos: fallbackRepos, totalCount: fallbackRepos.length, rateLimit }
+  return { repos: fallbackRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
 }

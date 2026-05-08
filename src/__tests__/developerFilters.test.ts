@@ -195,16 +195,22 @@ describe('evaluateDeveloperFilter', () => {
   })
 
   describe('low_competition', () => {
-    it('matches undiscovered growing repos', () => {
-      const repo = createMockRepo({ stars: 200, forks: 30 })
+    it('matches repos with a license', () => {
+      const repo = createMockRepo({ stars: 5000 })
       const result = evaluateDeveloperFilter('low_competition', repo)
       expect(result.matches).toBe(true)
     })
 
-    it('does not match very small repos without growth', () => {
-      const repo = createMockRepo({ stars: 30, forks: 5 })
+    it('does not match repos without a license', () => {
+      const repo = createMockRepo({ license: null })
       const result = evaluateDeveloperFilter('low_competition', repo)
       expect(result.matches).toBe(false)
+    })
+
+    it('does not rely on star thresholds (handled by API query)', () => {
+      const repo = createMockRepo({ stars: 100 })
+      const result = evaluateDeveloperFilter('low_competition', repo)
+      expect(result.matches).toBe(true)
     })
   })
 
@@ -226,17 +232,4 @@ describe('evaluateDeveloperFilter', () => {
     })
   })
 
-  describe('lightweight', () => {
-    it('matches repos with lightweight topics', () => {
-      const repo = createMockRepo({ topics: ['lightweight', 'minimal'] })
-      const result = evaluateDeveloperFilter('lightweight', repo)
-      expect(result.matches).toBe(true)
-    })
-
-    it('does not match repos without lightweight signals', () => {
-      const repo = createMockRepo({ stars: 50000 })
-      const result = evaluateDeveloperFilter('lightweight', repo)
-      expect(result.matches).toBe(false)
-    })
-  })
 })

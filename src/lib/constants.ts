@@ -49,7 +49,6 @@ export const DEVELOPER_FILTERS = {
   new_exploding: { label: 'New & Exploding', icon: '💥', description: 'Recently created, rapid growth' },
   low_competition: { label: 'Low Competition', icon: '💎', description: 'Undiscovered gems' },
   enterprise_grade: { label: 'Enterprise', icon: '🏢', description: 'Large-scale, robust, corporate use' },
-  lightweight: { label: 'Lightweight', icon: '🪶', description: 'Small footprint, minimal dependencies' },
 } as const
 
 

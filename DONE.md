@@ -37,6 +37,13 @@
 - [2026-05-08] Added missing `createdAt` field to RepoCard test mock
 - [2026-05-08] 75 tests passing, 0 TypeScript errors (down from 13)
 
+## Phase 16: Low Competition Filter Fix & Lightweight Removal
+- [2026-05-08] Removed Lightweight developer filter (obsolete — `stars < 20000` was a near-noop)
+- [2026-05-08] Replaced `stars:>50` with `stars:100..14999` in API query when Low Competition active (broadens search range and avoids dual-inequality qualifier issue)
+- [2026-05-08] Simplified `evaluateLowCompetition` client-side filter to only check `license !== null` (star range handled by API, growth/velocity dependency removed)
+- [2026-05-08] Fixed `totalCount` bug: was using `finalRepos.length` instead of API total, killing pagination when client-side filters removed all page-1 repos
+- [2026-05-08] Fixed pagination stop condition: uses `rawCount === 0` (API exhausted) instead of `loadedCount >= totalCount`
+
 ## Phase 13: Documentation
 - [2026-05-08] Created comprehensive README.md with feature descriptions, icons, project structure, setup guide, and testing docs (files modified: README.md)
 

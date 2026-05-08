@@ -24,6 +24,7 @@ interface ReposPage {
   repos: RepositoryWithIntelligence[]
   totalCount: number
   rateLimit: RateLimitInfo
+  rawCount: number
 }
 
 export function useRepos(options: UseReposOptions) {
@@ -47,8 +48,7 @@ export function useRepos(options: UseReposOptions) {
     queryFn: ({ pageParam = 1 }) =>
       fetchReposWithIntelligence(queryOptions, options.sort, options.order, pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
-      const loadedCount = allPages.reduce((sum, page) => sum + page.repos.length, 0)
-      if (loadedCount >= lastPage.totalCount) return undefined
+      if (lastPage.rawCount === 0) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,

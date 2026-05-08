@@ -32,8 +32,6 @@ export function evaluateDeveloperFilter(
       return evaluateLowCompetition(repo)
       case 'enterprise_grade':
       return evaluateEnterpriseGrade(repo, enrichment)
-      case 'lightweight':
-      return evaluateLightweight(repo)
     default:
       return { matches: true }
   }
@@ -201,16 +199,11 @@ function evaluateNewExploding(
 function evaluateLowCompetition(
   repo: RepositoryWithIntelligence,
 ): DeveloperFilterResult {
-  const isUndiscovered = repo.stars > 30 && repo.stars < 1000
-  const hasGoodQuality = repo.license !== null && repo.archived === false
-  const growth = repo.growth
-  const isGrowing = growth && growth.velocity > 0.1
-
-  const matches = isUndiscovered && hasGoodQuality && (isGrowing || repo.forks > 5)
+  const matches = repo.license !== null
 
   return {
     matches,
-    badge: matches ? { label: 'Undiscovered gem', icon: '💎', color: 'text-indigo-400' } : undefined,
+    badge: matches ? { label: 'Low competition', icon: '💎', color: 'text-indigo-400' } : undefined,
   }
 }
 
@@ -244,25 +237,5 @@ function evaluateEnterpriseGrade(
   return {
     matches,
     badge: matches ? { label: 'Enterprise grade', icon: '🏢', color: 'text-slate-400' } : undefined,
-  }
-}
-
-function evaluateLightweight(
-  repo: RepositoryWithIntelligence,
-): DeveloperFilterResult {
-  const lightweightTopics = repo.topics.filter((t) =>
-    ['lightweight', 'minimal', 'zero-dependency', 'no-dependencies', 'tiny', 'micro', 'fast', 'simple', 'small'].includes(t),
-  )
-  const isSmall = repo.stars < 20000
-
-  const matches = lightweightTopics.length > 0 || isSmall
-
-  return {
-    matches,
-    badge: lightweightTopics.length > 0
-      ? { label: 'Lightweight', icon: '🪶', color: 'text-teal-400' }
-      : matches
-        ? { label: 'Small project', icon: '🪶', color: 'text-teal-400' }
-        : undefined,
   }
 }

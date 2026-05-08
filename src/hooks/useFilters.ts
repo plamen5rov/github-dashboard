@@ -13,7 +13,6 @@ export type DeveloperFilter =
   | 'new_exploding'
   | 'low_competition'
   | 'enterprise_grade'
-  | 'lightweight'
 
 export interface FilterState {
   timeRange: TimeRange

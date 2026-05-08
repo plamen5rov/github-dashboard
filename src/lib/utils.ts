@@ -109,7 +109,11 @@ export function buildGitHubQuery(options: BuildQueryOptions): string {
     parts.push('fork:false')
   }
 
-  parts.push('stars:>50')
+  if (options.developerFilters?.includes('low_competition')) {
+    parts.push('stars:100..14999')
+  } else {
+    parts.push('stars:>50')
+  }
 
   return parts.join(' ')
 }
