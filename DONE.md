@@ -21,6 +21,12 @@
 - [2026-05-08] RepoCard collection icon fills blue when repo is in any collection
 - [2026-05-08] 73 tests passing
 
+## Phase 14: README Language Filter
+- [2026-05-08] Added README language toggle (All Languages / English Only) to filter bar (files modified: Home.tsx, FilterBar.tsx, useFilters.ts, useRepos.ts, github.ts, utils.ts)
+- [2026-05-08] Created `readmeLanguage.ts` with ~250-word frequency-based English detection algorithm (files created: readmeLanguage.ts)
+- [2026-05-08] Added batch GraphQL README fetching in `enrichWithReadmeText` for client-side language classification
+- [2026-05-08] Added 12 tests for `detectReadmeLanguage` covering English, Chinese, Cyrillic, code-block stripping, and edge cases (81 tests total passing)
+
 ## Phase 13: Documentation
 - [2026-05-08] Created comprehensive README.md with feature descriptions, icons, project structure, setup guide, and testing docs (files modified: README.md)
 

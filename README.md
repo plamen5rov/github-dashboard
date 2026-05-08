@@ -43,6 +43,7 @@ Discover repositories updated in the last **24 hours**, **7 days**, or
 | **Stars range** | Minimum stars slider                                  |
 | **Archived**    | Toggle to show/hide (hidden by default)               |
 | **Forks**       | Toggle to show/hide (hidden by default)               |
+| **README Lang** | Toggle: All Languages / English Only (client-side detection, requires PAT) |
 
 ### Developer-Centric Filters
 
@@ -144,6 +145,7 @@ src/
 │   ├── constants.ts               # Options, licenses, dev filters
 │   ├── developerFilters.ts        # Client-side filter evaluation
 │   ├── growth.ts                  # Growth metrics computation
+│   ├── readmeLanguage.ts          # English README detection
 │   └── userPreferences.ts         # localStorage CRUD
 ├── pages/
 │   ├── Home.tsx                   # Main trending feed
@@ -214,8 +216,8 @@ The token is stored in `localStorage` and never sent anywhere except GitHub.
 
 ## Testing
 
-73 tests covering utility functions, component rendering, filter logic,
-and growth computations.
+81 tests covering utility functions, component rendering, filter logic,
+growth computations, and language detection.
 
 ```bash
 # Run all tests
