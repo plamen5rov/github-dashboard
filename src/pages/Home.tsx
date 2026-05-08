@@ -232,19 +232,14 @@ function Home() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <SearchInput
-          value={filters.keyword}
-          onChange={(value) => updateFilters({ keyword: value })}
-        />
-
         <div className="p-3 sm:p-4 bg-github-darker border border-github-border rounded-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {Object.entries(TIME_RANGES).map(([key, { label }]) => (
                 <button
                   key={key}
                   onClick={() => updateFilters({ timeRange: key as TimeRange })}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
                     filters.timeRange === key
                       ? 'bg-github-accent text-white'
                       : 'bg-github-border text-github-muted hover:text-github-text'
@@ -254,9 +249,7 @@ function Home() {
                   {label}
                 </button>
               ))}
-            </div>
 
-            <div className="flex items-center gap-2 sm:ml-auto">
               <label htmlFor="sort-select" className="sr-only">
                 Sort by
               </label>
@@ -264,7 +257,7 @@ function Home() {
                 id="sort-select"
                 value={sort.field}
                 onChange={(e) => setSort({ field: e.target.value as SortState['field'] })}
-                className="flex-1 sm:flex-none px-3 py-1.5 bg-github-dark border border-github-border rounded-lg text-sm text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-github-dark border border-github-border rounded-lg text-sm sm:text-base text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
                 aria-label="Sort repositories by"
               >
                 {SORT_OPTIONS.map((option) => (
@@ -275,20 +268,27 @@ function Home() {
               </select>
               <button
                 onClick={toggleOrder}
-                className="p-1.5 bg-github-dark border border-github-border rounded-lg text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent"
+                className="p-1.5 sm:p-2 bg-github-dark border border-github-border rounded-lg text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent"
                 aria-label={`Switch to ${sort.order === 'asc' ? 'descending' : 'ascending'} order`}
                 title={sort.order === 'asc' ? 'Ascending' : 'Descending'}
               >
                 {sort.order === 'asc' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 )}
               </button>
+            </div>
+
+            <div className="sm:ml-auto w-full sm:w-auto sm:max-w-xs">
+              <SearchInput
+                value={filters.keyword}
+                onChange={(value) => updateFilters({ keyword: value })}
+              />
             </div>
           </div>
 

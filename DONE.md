@@ -51,6 +51,11 @@
 - [2026-05-08] Increased title font size (`text-xl` → `text-2xl`) and added subtitle describing app features (files modified: Home.tsx)
 - [2026-05-08] Added explanation in README for why time range maxes at 30 days (files modified: README.md)
 
+## Phase 19: Search Bar Relocation & Filter Bar Layout
+- [2026-05-08] Moved search bar from standalone full-width block into filter panel, right-aligned at top (files modified: Home.tsx)
+- [2026-05-08] Aligned time buttons and search on same row on desktop; moved sort dropdown next to time buttons (files modified: Home.tsx)
+- [2026-05-08] Increased time button and sort control sizes on desktop (`sm:px-4 sm:py-2 sm:text-base`) (files modified: Home.tsx)
+
 ## Phase 17: Remove Dead Trend Alerts Feature
 - [2026-05-08] Removed `TrendAlert` interface from types/github.ts
 - [2026-05-08] Removed `alerts`/`alertThreshold` from `UserPreferences`
