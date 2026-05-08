@@ -162,6 +162,34 @@ function FilterBar({ filters, onUpdate, onReset, activeCount }: FilterBarProps) 
         </label>
       </div>
 
+      <div>
+        <label className="text-sm text-github-muted block mb-1">README Language</label>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onUpdate({ readmeLanguage: 'all' })}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+              filters.readmeLanguage === 'all'
+                ? 'bg-github-accent text-white'
+                : 'bg-github-border text-github-muted hover:text-github-text'
+            }`}
+            aria-pressed={filters.readmeLanguage === 'all'}
+          >
+            All Languages
+          </button>
+          <button
+            onClick={() => onUpdate({ readmeLanguage: 'english' })}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+              filters.readmeLanguage === 'english'
+                ? 'bg-github-accent text-white'
+                : 'bg-github-border text-github-muted hover:text-github-text'
+            }`}
+            aria-pressed={filters.readmeLanguage === 'english'}
+          >
+            English Only
+          </button>
+        </div>
+      </div>
+
       {filters.topics.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {filters.topics.map((topic) => (

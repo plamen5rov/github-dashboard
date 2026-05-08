@@ -92,6 +92,7 @@ function Home() {
     includeArchived: filters.includeArchived,
     includeForks: filters.includeForks,
     developerFilters: filters.developerFilters,
+    readmeLanguage: filters.readmeLanguage,
     sort: sort.field,
     order: sort.order,
   })
@@ -378,6 +379,32 @@ function Home() {
               <span className="text-sm text-github-muted hidden sm:inline">Include forks</span>
               <span className="text-sm text-github-muted sm:hidden">Forks</span>
             </label>
+
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-github-muted">README:</span>
+              <button
+                onClick={() => updateFilters({ readmeLanguage: 'all' })}
+                className={`px-2 py-1 rounded text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                  filters.readmeLanguage === 'all'
+                    ? 'bg-github-accent text-white'
+                    : 'bg-github-border text-github-muted hover:text-github-text'
+                }`}
+                aria-pressed={filters.readmeLanguage === 'all'}
+              >
+                All
+              </button>
+              <button
+                onClick={() => updateFilters({ readmeLanguage: 'english' })}
+                className={`px-2 py-1 rounded text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                  filters.readmeLanguage === 'english'
+                    ? 'bg-github-accent text-white'
+                    : 'bg-github-border text-github-muted hover:text-github-text'
+                }`}
+                aria-pressed={filters.readmeLanguage === 'english'}
+              >
+                EN
+              </button>
+            </div>
 
             {activeFilterCount > 0 && (
               <button

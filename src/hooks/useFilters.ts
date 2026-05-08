@@ -24,6 +24,7 @@ export interface FilterState {
   includeArchived: boolean
   includeForks: boolean
   keyword: string
+  readmeLanguage: 'all' | 'english'
   developerFilters: DeveloperFilter[]
 }
 
@@ -36,6 +37,7 @@ const DEFAULT_FILTERS: FilterState = {
   includeArchived: false,
   includeForks: false,
   keyword: '',
+  readmeLanguage: 'all',
   developerFilters: [],
 }
 
@@ -49,6 +51,7 @@ function parseFilters(searchParams: URLSearchParams): FilterState {
     includeArchived: searchParams.get('includeArchived') === 'true',
     includeForks: searchParams.get('includeForks') === 'true',
     keyword: searchParams.get('keyword') || '',
+    readmeLanguage: (searchParams.get('readmeLanguage') as 'all' | 'english') || DEFAULT_FILTERS.readmeLanguage,
     developerFilters: searchParams.getAll('developerFilters') as DeveloperFilter[],
   }
 }
@@ -88,6 +91,7 @@ export function useFilters() {
     if (filters.includeArchived) count++
     if (filters.includeForks) count++
     if (filters.keyword) count++
+    if (filters.readmeLanguage !== 'all') count++
     if (filters.developerFilters.length > 0) count++
     return count
   }, [filters])

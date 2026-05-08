@@ -14,6 +14,7 @@ interface UseReposOptions {
   topics?: string[]
   includeArchived?: boolean
   includeForks?: boolean
+  readmeLanguage?: 'all' | 'english'
   developerFilters?: string[]
   sort: SortField
   order: SortOrder
@@ -35,6 +36,7 @@ export function useRepos(options: UseReposOptions) {
     topics: options.topics,
     includeArchived: options.includeArchived,
     includeForks: options.includeForks,
+    readmeLanguage: options.readmeLanguage,
     developerFilters: options.developerFilters,
   }
 

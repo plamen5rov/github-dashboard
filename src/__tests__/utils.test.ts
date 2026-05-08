@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { formatNumber, formatRelativeTime, getDateForTimeRange, buildGitHubQuery, isOSILicense } from '../lib/utils'
+import { detectReadmeLanguage } from '../lib/readmeLanguage'
 
 describe('formatNumber', () => {
   it('formats numbers under 1000 as-is', () => {
@@ -155,5 +156,94 @@ describe('isOSILicense', () => {
 
   it('returns false for Other', () => {
     expect(isOSILicense('Other')).toBe(false)
+  })
+})
+
+describe('detectReadmeLanguage', () => {
+  it('detects English in a typical README', () => {
+    const text = `# My Project
+This is a simple library for building web applications.
+## Installation
+npm install my-project
+## Usage
+import { thing } from 'my-project'
+thing()
+## License
+MIT`
+    expect(detectReadmeLanguage(text)).toBe('english')
+  })
+
+  it('detects non-English README with Chinese characters (no code)', () => {
+    const text = `# 我的项目
+这是一个用于构建网络应用的简单库。
+## 安装
+直接使用 npm 安装。
+## 功能
+- 快速
+- 简单
+- 可靠`
+    expect(detectReadmeLanguage(text)).toBe('other')
+  })
+
+  it('detects non-English README with Cyrillic text (no code)', () => {
+    const text = `# Мой проект
+Это простая библиотека для создания веб-приложений.
+## Установка
+Для установки используйте пакетный менеджер.
+## Возможности
+- Быстро
+- Просто
+- Надёжно`
+    expect(detectReadmeLanguage(text)).toBe('other')
+  })
+
+  it('returns other for empty or very minimal content', () => {
+    expect(detectReadmeLanguage('')).toBe('other')
+    expect(detectReadmeLanguage(' ')).toBe('other')
+    expect(detectReadmeLanguage('#')).toBe('other')
+  })
+
+  it('detects English in minimal but identifiable English text', () => {
+    expect(detectReadmeLanguage('# Project')).toBe('english')
+    expect(detectReadmeLanguage('hello world')).toBe('english')
+  })
+
+  it('ignores fenced code blocks when detecting language', () => {
+    const text = `# 中文README
+这是一个中文项目。
+## 代码示例
+\`\`\`javascript
+const x = 10
+function hello() {
+  return 'world'
+}
+\`\`\``
+    expect(detectReadmeLanguage(text)).toBe('other')
+  })
+
+  it('detects English in README with code samples', () => {
+    const text = `# My Library
+A fast and lightweight utility for data processing.
+
+## Quick Start
+First, install the package:
+\`\`\`
+npm install my-library
+\`\`\`
+Then import and use it in your project.
+## Features
+- Simple to use
+- High performance
+- Well tested`
+    expect(detectReadmeLanguage(text)).toBe('english')
+  })
+
+  it('handles README with URLs and markdown formatting', () => {
+    const text = `# Project
+Visit https://example.com for more info.
+Check the [docs](https://docs.example.com) for details.
+**Bold** and *italic* text.
+> This is a blockquote.`
+    expect(detectReadmeLanguage(text)).toBe('english')
   })
 })

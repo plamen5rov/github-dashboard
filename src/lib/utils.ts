@@ -35,6 +35,7 @@ export interface BuildQueryOptions {
   topics?: string[]
   includeArchived?: boolean
   includeForks?: boolean
+  readmeLanguage?: 'all' | 'english'
   developerFilters?: string[]
 }
 

@@ -15,6 +15,7 @@ import { calculateGrowthMetrics } from './growth'
 import { evaluateDeveloperFilter } from './developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import { loadPreferences } from './userPreferences'
+import { detectReadmeLanguage } from './readmeLanguage'
 
 function getToken(): string | null {
   return localStorage.getItem('github_token') || import.meta.env.VITE_GITHUB_TOKEN || null
@@ -248,6 +249,54 @@ export async function enrichWithDeveloperData(
   return result
 }
 
+async function enrichWithReadmeText(
+  repoNames: string[],
+): Promise<Map<string, string>> {
+  if (repoNames.length === 0) return new Map()
+
+  const token = getToken()
+  if (!token) return new Map()
+
+  const repoQueries = repoNames
+    .map((fullName, i) => {
+      const [owner, name] = fullName.split('/')
+      return `
+        repo_${i}: repository(owner: "${owner}", name: "${name}") {
+          readme: object(expression: "HEAD:README.md") {
+            ... on Blob {
+              isTruncated
+              text
+            }
+          }
+        }
+      `
+    })
+    .join('\n')
+
+  const query = `query { ${repoQueries} }`
+
+  const response = await fetch(GITHUB_GRAPHQL_URL, {
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ query }),
+  })
+
+  if (!response.ok) return new Map()
+
+  const data = await response.json()
+  const result = new Map<string, string>()
+
+  repoNames.forEach((fullName, i) => {
+    const repo = data.data?.[`repo_${i}`]
+    const readme = repo?.readme
+    if (readme?.text) {
+      result.set(fullName, readme.text)
+    }
+  })
+
+  return result
+}
+
 export async function fetchRepos(
   options: BuildQueryOptions,
   sort: SortField,
@@ -455,11 +504,46 @@ export async function fetchReposWithIntelligence(
         })
       }
 
+      if (options.readmeLanguage === 'english') {
+        const fullNames = finalRepos.map((r) => r.fullName)
+        try {
+          const readmeTexts = await enrichWithReadmeText(fullNames)
+          finalRepos = finalRepos.filter((repo) => {
+            const text = readmeTexts.get(repo.fullName)
+            if (!text) return false
+            return detectReadmeLanguage(text) === 'english'
+          })
+        } catch {
+          // README language detection failed, continue without filtering
+        }
+      }
+
       return { repos: finalRepos, totalCount: finalRepos.length, rateLimit }
     } catch {
       // Intelligence enrichment failed, return without growth data
     }
   }
 
-  return { repos: filteredRepos, totalCount: filteredRepos.length, rateLimit }
+  let fallbackRepos: RepositoryWithIntelligence[] = filteredRepos
+
+  if (options.readmeLanguage === 'english') {
+    const token = getToken()
+    if (token && filteredRepos.length > 0) {
+      const fullNames = filteredRepos.map((r) => r.fullName)
+      try {
+        const readmeTexts = await enrichWithReadmeText(fullNames)
+        fallbackRepos = filteredRepos.filter((repo) => {
+          const text = readmeTexts.get(repo.fullName)
+          if (!text) return false
+          return detectReadmeLanguage(text) === 'english'
+        })
+      } catch {
+        // README language detection failed, continue without filtering
+      }
+    } else {
+      fallbackRepos = []
+    }
+  }
+
+  return { repos: fallbackRepos, totalCount: fallbackRepos.length, rateLimit }
 }
