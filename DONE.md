@@ -75,6 +75,7 @@
 - [2026-05-08] Removed Sort and Min Stars from sidebar; added Min Stars input inline next to sort dropdown above repos (files modified: FilterSidebar.tsx, Home.tsx)
 - [2026-05-09] Updated README title, tagline, and added app screenshot (files modified: README.md, new: public/Screenshot from 2026-05-09 10-37-26.png)
 - [2026-05-09] Cleaned up README: removed stale file references, fixed Filters table, deleted dead DeveloperFilterBar.tsx (files modified: README.md, DeveloperFilterBar.tsx deleted)
+- [2026-05-09] Replaced tech stack text with linked shields.io badges; added "Made with OpenCode" badge (files modified: README.md)
 
 ## Phase 26: GitHub Primer Colors & AGENTS.md Cleanup
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)

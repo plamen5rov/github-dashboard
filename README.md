@@ -8,8 +8,13 @@ Filter GitHub's trending landscape by language, license, stars, topics, and more
 
 ![GitHub Dashboard screenshot](./public/Screenshot%20from%202026-05-09%2010-37-26.png)
 
-Built with **React 19**, **TypeScript 6**, **Vite 7**, **Tailwind CSS**,
-**TanStack Query**, and the **GitHub REST + GraphQL APIs**.
+[![React 19](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript 6](https://img.shields.io/badge/TypeScript_6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite 7](https://img.shields.io/badge/Vite_7-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
+[![Tailwind CSS 3](https://img.shields.io/badge/Tailwind_CSS_3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![TanStack Query 5](https://img.shields.io/badge/TanStack_Query_5-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)](https://tanstack.com/query)
+[![GitHub REST + GraphQL](https://img.shields.io/badge/GitHub_REST_%2B_GraphQL-181717?style=for-the-badge&logo=github&logoColor=white)](https://docs.github.com/en/rest)
+[![Made with OpenCode](https://img.shields.io/badge/Made_with_OpenCode-6C47FF?style=for-the-badge&logo=openai&logoColor=white)](https://opencode.ai)
 
 ---
 
