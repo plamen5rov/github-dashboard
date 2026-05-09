@@ -67,6 +67,9 @@
 - [2026-05-08] Fixed "Min stars" filter being ignored — `stars:>=N` now replaces default `stars:>50` instead of adding a duplicate qualifier (GitHub ignores duplicate star qualifiers) (files modified: utils.ts, utils.test.ts)
 - [2026-05-08] Fixed ignored languages using AND-syntax in negation group — switched to separate `-language:X` per language (files modified: github.ts)
 
+## Phase 24: Filter Panel Font Consistency
+- [2026-05-08] Unified all filter panel labels, inputs, and buttons to match time button font size (`text-sm sm:text-base font-medium`) for visual consistency (files modified: Home.tsx)
+
 ## Phase 23: Clickable Logo & Title
 - [2026-05-08] Wrapped GitHub logo icon and dashboard title in `<Link to="/">` to reset all filters on click (files modified: Home.tsx)
 

@@ -298,7 +298,7 @@ function Home() {
             <div ref={langPickerRef} className="relative">
               <button
                 onClick={() => setShowLanguagePicker(!showLanguagePicker)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
                   filters.language.length > 0
                     ? 'bg-github-accent text-white'
                     : 'bg-github-border text-github-muted hover:text-github-text'
@@ -334,7 +334,7 @@ function Home() {
               <select
                 value={filters.licenseType}
                 onChange={(e) => updateFilters({ licenseType: e.target.value })}
-                className="px-3 py-1.5 bg-github-border border-0 rounded-lg text-sm text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-github-border border-0 rounded-lg text-sm sm:text-base font-medium text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent cursor-pointer"
                 aria-label="Filter by license type"
               >
                 <option value="all">All Licenses</option>
@@ -352,7 +352,7 @@ function Home() {
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="min-stars" className="text-sm text-github-muted">
+              <label htmlFor="min-stars" className="text-sm sm:text-base font-medium text-github-muted">
                 Min stars:
               </label>
               <input
@@ -361,7 +361,7 @@ function Home() {
                 min={0}
                 value={filters.minStars || ''}
                 onChange={(e) => updateFilters({ minStars: parseInt(e.target.value) || 0 })}
-                className="w-16 sm:w-20 px-2 py-1.5 bg-github-border border-0 rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent"
+                className="w-16 sm:w-20 px-2 py-1.5 sm:px-3 sm:py-2 bg-github-border border-0 rounded-lg text-sm sm:text-base font-medium text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent"
                 placeholder="0"
               />
             </div>
@@ -373,8 +373,8 @@ function Home() {
                 onChange={(e) => updateFilters({ includeArchived: e.target.checked })}
                 className="w-4 h-4 rounded border-github-border bg-github-border text-github-accent focus:ring-github-accent focus:ring-offset-0"
               />
-              <span className="text-sm text-github-muted hidden sm:inline">Include archived</span>
-              <span className="text-sm text-github-muted sm:hidden">Archived</span>
+              <span className="text-sm sm:text-base font-medium text-github-muted hidden sm:inline">Include archived</span>
+              <span className="text-sm sm:text-base font-medium text-github-muted sm:hidden">Archived</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -384,15 +384,15 @@ function Home() {
                 onChange={(e) => updateFilters({ includeForks: e.target.checked })}
                 className="w-4 h-4 rounded border-github-border bg-github-border text-github-accent focus:ring-github-accent focus:ring-offset-0"
               />
-              <span className="text-sm text-github-muted hidden sm:inline">Include forks</span>
-              <span className="text-sm text-github-muted sm:hidden">Forks</span>
+              <span className="text-sm sm:text-base font-medium text-github-muted hidden sm:inline">Include forks</span>
+              <span className="text-sm sm:text-base font-medium text-github-muted sm:hidden">Forks</span>
             </label>
 
             <div className="flex items-center gap-1">
-              <span className="text-xs text-github-muted">README:</span>
+              <span className="text-sm sm:text-base font-medium text-github-muted mr-2">README:</span>
               <button
                 onClick={() => updateFilters({ readmeLanguage: 'all' })}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded text-sm sm:text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
                   filters.readmeLanguage === 'all'
                     ? 'bg-github-accent text-white'
                     : 'bg-github-border text-github-muted hover:text-github-text'
@@ -403,7 +403,7 @@ function Home() {
               </button>
               <button
                 onClick={() => updateFilters({ readmeLanguage: 'english' })}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded text-sm sm:text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
                   filters.readmeLanguage === 'english'
                     ? 'bg-github-accent text-white'
                     : 'bg-github-border text-github-muted hover:text-github-text'
@@ -417,7 +417,7 @@ function Home() {
             {activeFilterCount > 0 && (
               <button
                 onClick={resetFilters}
-                className="ml-auto text-xs text-github-accent hover:underline focus:outline-none focus:ring-2 focus:ring-github-accent rounded px-2 py-1"
+                className="ml-auto text-sm sm:text-base font-medium text-github-accent hover:underline focus:outline-none focus:ring-2 focus:ring-github-accent rounded px-2 py-1 sm:px-3 sm:py-1.5"
               >
                 Reset all ({activeFilterCount})
               </button>
@@ -425,11 +425,11 @@ function Home() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-github-border">
-            <span className="text-sm text-github-muted mr-2">Topics:</span>
+            <span className="text-sm sm:text-base font-medium text-github-muted mr-2">Topics:</span>
             {filters.topics.map((topic) => (
               <span
                 key={topic}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-github-accent/20 text-github-accent rounded-full text-xs"
+                className="inline-flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-github-accent/20 text-github-accent rounded-full text-sm sm:text-base font-medium"
               >
                 {topic}
                 <button
@@ -447,7 +447,7 @@ function Home() {
               onChange={(e) => setTopicInput(e.target.value)}
               onKeyDown={handleTopicAdd}
               placeholder="Add topic (Enter)"
-              className="px-2 py-1 bg-github-border border-0 rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent w-28 sm:w-32"
+              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-github-border border-0 rounded-lg text-sm sm:text-base font-medium text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent w-28 sm:w-32"
               aria-label="Add topic filter"
             />
           </div>
