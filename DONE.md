@@ -67,6 +67,9 @@
 - [2026-05-08] Fixed "Min stars" filter being ignored — `stars:>=N` now replaces default `stars:>50` instead of adding a duplicate qualifier (GitHub ignores duplicate star qualifiers) (files modified: utils.ts, utils.test.ts)
 - [2026-05-08] Fixed ignored languages using AND-syntax in negation group — switched to separate `-language:X` per language (files modified: github.ts)
 
+## Phase 27: Left Sidebar Filter Layout
+- [2026-05-08] Restructured filter panel from horizontal bar to left sidebar with collapsible sections; added hamburger menu for mobile; moved sort controls to top of results area (files modified: Home.tsx, FilterSidebar.tsx new)
+
 ## Phase 26: GitHub Primer Colors & AGENTS.md Cleanup
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)
 - [2026-05-08] Rewrote AGENTS.md from 281 lines to ~70 lines — removed outdated architecture tree, GraphQL examples, OAuth flow, Definition of Done; kept API quirks, architecture decisions, workflow rules, lessons learned (files modified: AGENTS.md)
