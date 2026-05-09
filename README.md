@@ -192,17 +192,28 @@ npm run preview
 
 ---
 
-## GitHub API & Rate Limits
+## GitHub API & Authentication
 
-The app uses both **REST** (search) and **GraphQL** (enrichment) APIs.
+The app uses both **REST** (search) and **GraphQL** (enrichment) APIs. Most features work without authentication, but providing a GitHub Personal Access Token unlocks the full experience.
 
-| Auth State       | Rate Limit             |
-|------------------|------------------------|
-| Unauthenticated  | 60 requests/hour       |
-| PAT              | 5,000 requests/hour    |
+![Settings page](./public/Screenshot%20from%202026-05-09%2011-11-24.png)
 
-To increase your rate limit, paste a **GitHub PAT** in Settings (`/settings`).
-The token is stored in `localStorage` and never sent anywhere except GitHub.
+### What a PAT unlocks
+
+| Without PAT                          | With PAT                                          |
+|--------------------------------------|---------------------------------------------------|
+| 60 requests/hour                     | 5,000 requests/hour                               |
+| Basic search results only            | Enriched repo data (PR/issue counts, languages)  |
+| No README language detection         | English README detection enabled                  |
+
+### How to get one
+
+1. Go to **GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens**
+2. Give it a name, set expiration, and select **"Only select repositories"** (or no repo access — the token only reads public data)
+3. No scopes needed for public data; add `Metadata: Read` if prompted
+4. Copy the token and paste it in the app's **Settings** page (`/settings`)
+
+The token is stored in **`localStorage`** and sent **only** to GitHub API endpoints.
 
 > ⚠️ Never commit tokens to source control. `.env.local` is gitignored.
 

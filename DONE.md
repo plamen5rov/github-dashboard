@@ -77,6 +77,7 @@
 - [2026-05-09] Cleaned up README: removed stale file references, fixed Filters table, deleted dead DeveloperFilterBar.tsx (files modified: README.md, DeveloperFilterBar.tsx deleted)
 - [2026-05-09] Replaced tech stack text with linked shields.io badges; added "Made with OpenCode" badge (files modified: README.md)
 - [2026-05-09] Swapped OpenCode badge to official SVG from openchamber (files modified: README.md)
+- [2026-05-09] Expanded API section with PAT setup guide and Settings screenshot (files modified: README.md, new: public/Screenshot from 2026-05-09 11-11-24.png)
 
 ## Phase 26: GitHub Primer Colors & AGENTS.md Cleanup
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)
