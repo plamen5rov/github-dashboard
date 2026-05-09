@@ -266,6 +266,18 @@ npm run lint
 
 ---
 
+## Support This Project ⭐
+
+If you find GitHub Dashboard useful, consider giving it a star on GitHub — it helps others discover it.
+
+[![Star this repo](https://img.shields.io/github/stars/plamen5rov/github-dashboard?style=for-the-badge&logo=github&logoColor=white&label=Star%20this%20repo&color=FFD700)](https://github.com/plamen5rov/github-dashboard)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/chart?repos=plamen5rov/github-dashboard&type=timeline&logscale&legend=top-left)](https://www.star-history.com/#plamen5rov/github-dashboard&timeline)
+
+---
+
 ## License
 
 MIT
