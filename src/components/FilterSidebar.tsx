@@ -141,12 +141,12 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
           <div className="border-b border-github-border pb-3">
             <SectionHeader title="Time Range" section="time" />
             {!collapsedSections.time && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex gap-1.5 mt-2">
                 {Object.entries(TIME_RANGES).map(([key, { label }]) => (
                   <button
                     key={key}
                     onClick={() => updateFilters({ timeRange: key as TimeRange })}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                    className={`flex-1 px-1 py-1 rounded text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
                       filters.timeRange === key
                         ? 'bg-github-accent text-white'
                         : 'bg-github-border text-github-muted hover:text-github-text'
