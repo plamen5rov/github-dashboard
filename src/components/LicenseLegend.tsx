@@ -41,7 +41,7 @@ function LicenseLegend() {
       </button>
 
       {isOpen && (
-        <div className="absolute z-20 left-0 mt-2 w-80 bg-github-dark border border-github-border rounded-xl shadow-xl p-4 max-h-96 overflow-y-auto">
+        <div className="absolute z-50 right-0 mt-2 w-60 bg-github-dark border border-github-border rounded-xl shadow-xl p-4 max-h-96 overflow-y-auto">
           <h3 className="text-sm font-semibold text-github-text mb-3">
             Open Source License Guide
           </h3>

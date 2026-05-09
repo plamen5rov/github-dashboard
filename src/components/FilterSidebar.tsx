@@ -81,21 +81,24 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }))
   }
 
-  const SectionHeader = ({ title, section }: { title: string; section: string }) => (
-    <button
-      onClick={() => toggleSection(section)}
-      className="flex items-center justify-between w-full py-2 text-sm font-semibold text-github-text hover:text-github-accent transition-colors"
-    >
-      <span>{title}</span>
-      <svg
-        className={`w-4 h-4 transition-transform ${collapsedSections[section] ? '' : 'rotate-180'}`}
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+  const SectionHeader = ({ title, section, rightElement }: { title: string; section: string; rightElement?: React.ReactNode }) => (
+    <div className="flex items-center w-full py-2">
+      <button
+        onClick={() => toggleSection(section)}
+        className="flex items-center justify-between flex-1 text-sm font-semibold text-github-text hover:text-github-accent transition-colors"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </button>
+        <span>{title}</span>
+        <svg
+          className={`w-4 h-4 transition-transform ${collapsedSections[section] ? '' : 'rotate-180'}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {rightElement && <div className="ml-2">{rightElement}</div>}
+    </div>
   )
 
   return (
@@ -231,7 +234,7 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
 
           {/* License */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="License" section="license" />
+            <SectionHeader title="License" section="license" rightElement={<LicenseLegend />} />
             {!collapsedSections.license && (
               <div className="mt-2">
                 <select
@@ -251,9 +254,6 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
                     ))}
                   </optgroup>
                 </select>
-                <div className="mt-2">
-                  <LicenseLegend />
-                </div>
               </div>
             )}
           </div>
