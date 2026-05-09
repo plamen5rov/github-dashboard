@@ -1,9 +1,12 @@
 <!-- markdownlint-disable MD013 MD060 -->
 
-# GitHub Trending Repos Explorer
+# GitHub Dashboard
 
-Explore trending and popular GitHub repositories with rich filtering,
-sorting, personalization, and discovery tools.
+Stop hunting for cool repos. Start discovering them.
+
+Filter GitHub's trending landscape by language, license, stars, topics, and more. Bookmark gems, organize collections, ignore noise. All client-side — your data stays yours.
+
+![GitHub Dashboard screenshot](./public/Screenshot%20from%202026-05-09%2010-37-26.png)
 
 Built with **React 19**, **TypeScript 6**, **Vite 7**, **Tailwind CSS**,
 **TanStack Query**, and the **GitHub REST + GraphQL APIs**.

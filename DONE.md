@@ -73,6 +73,7 @@
 - [2026-05-08] Added colored language dots in language filter buttons; exported `LANGUAGE_COLORS` from LanguageBadge (files modified: FilterSidebar.tsx, LanguageBadge.tsx)
 - [2026-05-08] Moved License guide button next to section title; fixed popup width to fit within sidebar (files modified: FilterSidebar.tsx, LicenseLegend.tsx)
 - [2026-05-08] Removed Sort and Min Stars from sidebar; added Min Stars input inline next to sort dropdown above repos (files modified: FilterSidebar.tsx, Home.tsx)
+- [2026-05-09] Updated README title, tagline, and added app screenshot (files modified: README.md, new: public/Screenshot from 2026-05-09 10-37-26.png)
 
 ## Phase 26: GitHub Primer Colors & AGENTS.md Cleanup
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)
