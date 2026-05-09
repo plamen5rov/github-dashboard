@@ -70,6 +70,7 @@
 ## Phase 27: Left Sidebar Filter Layout
 - [2026-05-08] Restructured filter panel from horizontal bar to left sidebar with collapsible sections; added hamburger menu for mobile; moved sort controls to top of results area (files modified: Home.tsx, FilterSidebar.tsx new)
 - [2026-05-08] Shrunk time range buttons to `flex-1 text-xs` with `gap-1.5` to fit on one line (files modified: FilterSidebar.tsx)
+- [2026-05-08] Added colored language dots in language filter buttons; exported `LANGUAGE_COLORS` from LanguageBadge (files modified: FilterSidebar.tsx, LanguageBadge.tsx)
 
 ## Phase 26: GitHub Primer Colors & AGENTS.md Cleanup
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)

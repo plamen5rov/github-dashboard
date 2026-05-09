@@ -7,6 +7,7 @@ import type { SortState } from '../hooks/useSort'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import SearchInput from './SearchInput'
 import LicenseLegend from './LicenseLegend'
+import { LANGUAGE_COLORS } from './LanguageBadge'
 
 interface FilterSidebarProps {
   isOpen: boolean
@@ -209,12 +210,17 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
                     <button
                       key={lang}
                       onClick={() => toggleLanguage(lang)}
-                      className={`px-2 py-1 rounded text-xs text-left transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent ${
+                      className={`px-2 py-1 rounded text-xs text-left transition-colors focus:outline-none focus:ring-2 focus:ring-github-accent flex items-center gap-1.5 ${
                         filters.language.includes(lang)
                           ? 'bg-github-accent text-white'
                           : 'text-github-muted hover:bg-github-border'
                       }`}
                     >
+                      <span
+                        className="inline-block w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: LANGUAGE_COLORS[lang] || '#8b949e' }}
+                        aria-hidden="true"
+                      />
                       {lang}
                     </button>
                   ))}
