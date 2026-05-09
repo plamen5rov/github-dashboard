@@ -124,9 +124,6 @@ function Home() {
               </svg>
               <h1 className="text-2xl font-bold text-github-text">
                 GitHub Dashboard
-                <span className="text-sm font-normal text-github-muted ml-2 hidden md:inline">
-                  — trending repos, filters, bookmarks, and discovery
-                </span>
               </h1>
             </Link>
           </div>

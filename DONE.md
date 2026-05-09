@@ -71,6 +71,7 @@
 - [2026-05-08] Aligned Tailwind color tokens with GitHub Primer design system — fixed `darker`, `purple`, `light-border`, `light-muted`; added `link`, `open`, `closed`, `attention` tokens (files modified: tailwind.config.js)
 - [2026-05-08] Rewrote AGENTS.md from 281 lines to ~70 lines — removed outdated architecture tree, GraphQL examples, OAuth flow, Definition of Done; kept API quirks, architecture decisions, workflow rules, lessons learned (files modified: AGENTS.md)
 - [2026-05-08] Widened "Add topic" input from `w-28 sm:w-32` to `w-36 sm:w-48` so full placeholder text is visible (files modified: Home.tsx)
+- [2026-05-08] Removed header subtitle "— trending repos, filters, bookmarks, and discovery" for cleaner, GitHub-like minimal header (files modified: Home.tsx)
 
 ## Phase 25: Remove Momentum/Growth Metrics
 - [2026-05-08] Removed custom momentum/growth metrics — deleted `RepositoryInsight.tsx`, `growth.ts`, `growth.test.ts`, star timeline fetching, and intelligence enrichment (files modified: RepoCard.tsx, github.ts, types/github.ts, developerFilters.ts, developerFilters.test.ts, constants.ts, README.md)
