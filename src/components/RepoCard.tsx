@@ -1,7 +1,6 @@
 import type { RepositoryWithIntelligence } from '../types/github'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
-import RepositoryInsight from './RepositoryInsight'
 import { formatNumber, formatRelativeTime } from '../lib/utils'
 import { evaluateDeveloperFilter } from '../lib/developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
@@ -185,8 +184,6 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
           {formatRelativeTime(repo.pushedAt)}
         </span>
       </div>
-
-      {repo.growth && <RepositoryInsight growth={repo.growth} />}
 
       {repo.topics.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-auto pt-3 border-t border-github-border">

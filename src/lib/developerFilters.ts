@@ -185,14 +185,13 @@ function evaluateNewExploding(
     (Date.now() - new Date(repo.createdAt).getTime()) / (1000 * 60 * 60 * 24),
   )
   const isNew = repoAge <= 180
-  const growth = repo.growth
-  const isExploding = growth && (growth.starsThisWeek > 10 || growth.momentumScore > 40)
+  const hasSomeStars = repo.stars > 50
 
-  const matches = (isNew && isExploding) || (isNew && repo.stars > 100)
+  const matches = isNew && hasSomeStars
 
   return {
     matches,
-    badge: matches ? { label: isNew && isExploding ? 'New & exploding' : 'Recently created', icon: '💥', color: 'text-orange-400' } : undefined,
+    badge: matches ? { label: 'Recently created', icon: '💥', color: 'text-orange-400' } : undefined,
   }
 }
 

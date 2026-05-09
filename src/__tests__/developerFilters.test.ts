@@ -23,16 +23,6 @@ function createMockRepo(overrides: Partial<RepositoryWithIntelligence> = {}): Re
     topics: [],
     archived: false,
     isFork: false,
-    growth: {
-      starsToday: 5,
-      starsThisWeek: 30,
-      starsThisMonth: 100,
-      forksGrowth: 10,
-      velocity: 4.3,
-      momentumScore: 50,
-      trend: 'stable',
-      trendingTopics: [],
-    },
     ...overrides,
   }
 }
@@ -167,19 +157,10 @@ describe('evaluateDeveloperFilter', () => {
   })
 
   describe('new_exploding', () => {
-    it('matches new repos with rapid growth', () => {
+    it('matches recently created repos with some stars', () => {
       const repo = createMockRepo({
         createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        growth: {
-          starsToday: 100,
-          starsThisWeek: 200,
-          starsThisMonth: 300,
-          forksGrowth: 50,
-          velocity: 28.6,
-          momentumScore: 85,
-          trend: 'accelerating',
-          trendingTopics: ['viral'],
-        },
+        stars: 200,
       })
       const result = evaluateDeveloperFilter('new_exploding', repo)
       expect(result.matches).toBe(true)
@@ -188,6 +169,15 @@ describe('evaluateDeveloperFilter', () => {
     it('does not match old repos', () => {
       const repo = createMockRepo({
         createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      const result = evaluateDeveloperFilter('new_exploding', repo)
+      expect(result.matches).toBe(false)
+    })
+
+    it('does not match repos with zero stars', () => {
+      const repo = createMockRepo({
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        stars: 0,
       })
       const result = evaluateDeveloperFilter('new_exploding', repo)
       expect(result.matches).toBe(false)

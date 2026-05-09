@@ -67,6 +67,9 @@
 - [2026-05-08] Fixed "Min stars" filter being ignored — `stars:>=N` now replaces default `stars:>50` instead of adding a duplicate qualifier (GitHub ignores duplicate star qualifiers) (files modified: utils.ts, utils.test.ts)
 - [2026-05-08] Fixed ignored languages using AND-syntax in negation group — switched to separate `-language:X` per language (files modified: github.ts)
 
+## Phase 25: Remove Momentum/Growth Metrics
+- [2026-05-08] Removed custom momentum/growth metrics — deleted `RepositoryInsight.tsx`, `growth.ts`, `growth.test.ts`, star timeline fetching, and intelligence enrichment (files modified: RepoCard.tsx, github.ts, types/github.ts, developerFilters.ts, developerFilters.test.ts, constants.ts, README.md)
+
 ## Phase 24: Filter Panel Font Consistency
 - [2026-05-08] Unified all filter panel labels, inputs, and buttons to match time button font size (`text-sm sm:text-base font-medium`) for visual consistency (files modified: Home.tsx)
 

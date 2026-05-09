@@ -46,7 +46,7 @@ export const DEVELOPER_FILTERS = {
   production_ready: { label: 'Production Ready', icon: '🚀', description: 'Stable, well-tested, widely used' },
   ai_related: { label: 'AI/ML', icon: '🤖', description: 'Artificial intelligence / machine learning' },
   indie_project: { label: 'Indie Project', icon: '🎨', description: 'Small, creative, independent' },
-  new_exploding: { label: 'New & Exploding', icon: '💥', description: 'Recently created, rapid growth' },
+  new_exploding: { label: 'New & Exploding', icon: '💥', description: 'Recently created projects with stars' },
   low_competition: { label: 'Low Competition', icon: '💎', description: 'Undiscovered gems' },
   enterprise_grade: { label: 'Enterprise', icon: '🏢', description: 'Large-scale, robust, corporate use' },
 } as const

@@ -51,7 +51,7 @@ Discover repositories updated in the last **24 hours**, **7 days**, or
 
 ### Developer-Centric Filters
 
-Eleven purpose-built filters applied client-side for detection that
+Ten purpose-built filters applied client-side for detection that
 GitHub search qualifiers can't express:
 
 | Filter                | Icon | What it finds                               |
@@ -63,21 +63,9 @@ GitHub search qualifiers can't express:
 | **Production Ready**  | 🚀   | Stable, licensed, widely used                |
 | **AI/ML**             | 🤖   | Machine learning, LLMs, neural networks      |
 | **Indie Project**     | 🎨   | Small, creative, independent projects        |
-| **New & Exploding**   | 💥   | Recently created, rapid growth               |
+| **New & Exploding**   | 💥   | Recently created projects with stars           |
 | **Low Competition**   | 💎   | Undiscovered gems with quality signals       |
 | **Enterprise**        | 🏢   | Large-scale, cloud-native, infrastructure    |
-| **Lightweight**       | 🪶   | Minimal dependencies, small footprint        |
-
-### Repository Intelligence
-
-Metadata enrichment via GraphQL and star history analysis:
-
-- 📈 **Growth velocity** — stars gained today / this week / this month
-- 🧠 **Momentum score** — compound growth signal
-- 🔮 **Trend detection** — stable, rising, surging, exploding
-- 👥 **Contributor count** and recent commit activity
-- 📦 **Release count** and test suite detection
-- 🏷️ **Smart badges** for each active developer filter
 
 ### Personalization
 
@@ -87,7 +75,6 @@ All data stored in `localStorage` — no backend required.
 - 📂 **Collections** — organize repos into custom groups
 - 👁️ **Followed Topics** — recommendations based on followed topics
 - 🚫 **Ignore List** — hide repos matching unwanted topics/languages
-- 🔔 **Trend Alerts** — notification-style feed of interesting findings
 - 🔗 **Shareable URLs** — every filter/sort combo is uniquely bookmarkable
 
 ### UI & Accessibility
@@ -125,7 +112,7 @@ src/
 │   ├── RepoCard.tsx               # Individual repo display card
 │   ├── RepoGrid.tsx               # Grid layout with infinite scroll
 │   ├── FilterBar.tsx              # Standard filters
-│   ├── DeveloperFilterBar.tsx     # 11 developer chip toggles
+│   ├── DeveloperFilterBar.tsx     # 10 developer chip toggles
 │   ├── SortControls.tsx           # Sort field + order controls
 │   ├── SearchInput.tsx            # Debounced keyword search
 │   ├── LanguageBadge.tsx          # Color-coded language indicator
@@ -134,9 +121,7 @@ src/
 │   ├── BookmarksPanel.tsx         # Saved repos modal
 │   ├── CollectionsPanel.tsx       # Collection manager modal
 │   ├── FollowedTopicsManager.tsx  # Topic following modal
-│   ├── IgnoreListManager.tsx      # Ignore list modal
-│   ├── TrendAlerts.tsx            # Notification-style alerts
-│   └── RepositoryInsight.tsx      # Growth metrics display
+│   └── IgnoreListManager.tsx      # Ignore list modal
 ├── hooks/
 │   ├── useRepos.ts                # TanStack Query infinite data hook
 │   ├── useFilters.ts              # URL-synced filter state
@@ -148,7 +133,6 @@ src/
 │   ├── utils.ts                   # Formatting helpers
 │   ├── constants.ts               # Options, licenses, dev filters
 │   ├── developerFilters.ts        # Client-side filter evaluation
-│   ├── growth.ts                  # Growth metrics computation
 │   ├── readmeLanguage.ts          # English README detection
 │   └── userPreferences.ts         # localStorage CRUD
 ├── pages/
@@ -220,8 +204,8 @@ The token is stored in `localStorage` and never sent anywhere except GitHub.
 
 ## Testing
 
-81 tests covering utility functions, component rendering, filter logic,
-growth computations, and language detection.
+69 tests covering utility functions, component rendering, filter logic,
+and language detection.
 
 ```bash
 # Run all tests

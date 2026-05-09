@@ -3,15 +3,12 @@ import type {
   Repository,
   RateLimitInfo,
   GitHubAPIError,
-  StarTimelineEntry,
   RepositoryWithIntelligence,
-  GrowthMetrics,
   GraphQLRepositoryEnrichment,
 } from '../types/github'
 import { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, DEFAULT_PER_PAGE } from './constants'
 import type { BuildQueryOptions, SortField, SortOrder } from './utils'
 import { buildGitHubQuery, getAPISortField } from './utils'
-import { calculateGrowthMetrics } from './growth'
 import { evaluateDeveloperFilter } from './developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import { loadPreferences } from './userPreferences'
@@ -321,80 +318,7 @@ export async function fetchRepoByFullName(fullName: string): Promise<RepositoryW
     }
   }
 
-  return { ...repo, growth: undefined }
-}
-
-const starTimelineCache = new Map<string, StarTimelineEntry[]>()
-
-async function fetchStarTimeline(fullName: string): Promise<StarTimelineEntry[]> {
-  if (starTimelineCache.has(fullName)) {
-    return starTimelineCache.get(fullName)!
-  }
-
-  const token = getToken()
-  if (!token) return []
-
-  const [owner, name] = fullName.split('/')
-  const query = `
-    query {
-      repository(owner: "${owner}", name: "${name}") {
-        stargazers(first: 100, orderBy: { field: STARRED_AT, direction: DESC }) {
-          edges {
-            starredAt
-          }
-        }
-      }
-    }
-  `
-
-  const response = await fetch(GITHUB_GRAPHQL_URL, {
-    method: 'POST',
-    headers: getHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ query }),
-  })
-
-  if (!response.ok) {
-    starTimelineCache.set(fullName, [])
-    return []
-  }
-
-  const data = await response.json()
-  const edges = data.data?.repository?.stargazers?.edges || []
-  const timeline: StarTimelineEntry[] = edges.map((edge: { starredAt: string }) => ({
-    starred_at: edge.starredAt,
-  }))
-
-  starTimelineCache.set(fullName, timeline)
-  return timeline
-}
-
-async function enrichWithIntelligence(
-  repos: Repository[],
-): Promise<Map<string, GrowthMetrics>> {
-  const result = new Map<string, GrowthMetrics>()
-
-  const token = getToken()
-  if (!token) return result
-
-  const intelligencePromises = repos.map(async (repo) => {
-    try {
-      const starTimeline = await fetchStarTimeline(repo.fullName)
-
-      const metrics = calculateGrowthMetrics(
-        starTimeline,
-        repo.stars,
-        repo.createdAt,
-        repo.pushedAt,
-      )
-
-      result.set(repo.fullName, metrics)
-    } catch {
-      // Skip this repo if intelligence fetching fails
-    }
-  })
-
-  await Promise.allSettled(intelligencePromises)
-  return result
+  return { ...repo }
 }
 
 export async function fetchReposWithIntelligence(
@@ -450,52 +374,43 @@ export async function fetchReposWithIntelligence(
       // GraphQL enrichment failed, continue with REST data
     }
 
-    try {
-      const intelligence = await enrichWithIntelligence(filteredRepos)
-      const reposWithIntelligence: RepositoryWithIntelligence[] = filteredRepos.map((repo) => ({
-        ...repo,
-        growth: intelligence.get(repo.fullName),
-      }))
+    let finalRepos: RepositoryWithIntelligence[] = filteredRepos
 
-      let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
-      if (options.developerFilters && options.developerFilters.length > 0) {
-        try {
-          developerEnrichmentMap = await enrichWithDeveloperData(fullNames)
-        } catch {
-          // Developer data enrichment failed, continue without it
-        }
+    let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
+    if (options.developerFilters && options.developerFilters.length > 0) {
+      try {
+        developerEnrichmentMap = await enrichWithDeveloperData(fullNames)
+      } catch {
+        // Developer data enrichment failed, continue without it
       }
-
-      let finalRepos = reposWithIntelligence
-      if (options.developerFilters && options.developerFilters.length > 0) {
-        const developerFilters = options.developerFilters as DeveloperFilter[]
-        finalRepos = reposWithIntelligence.filter((repo) => {
-          const enrichment = developerEnrichmentMap.get(repo.fullName)
-          return developerFilters.some((filter) => {
-            const result = evaluateDeveloperFilter(filter, repo, enrichment)
-            return result.matches
-          })
-        })
-      }
-
-      if (options.readmeLanguage === 'english') {
-        const fullNames = finalRepos.map((r) => r.fullName)
-        try {
-          const readmeTexts = await enrichWithReadmeText(fullNames)
-          finalRepos = finalRepos.filter((repo) => {
-            const text = readmeTexts.get(repo.fullName)
-            if (!text) return false
-            return detectReadmeLanguage(text) === 'english'
-          })
-        } catch {
-          // README language detection failed, continue without filtering
-        }
-      }
-
-      return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
-    } catch {
-      // Intelligence enrichment failed, return without growth data
     }
+
+    if (options.developerFilters && options.developerFilters.length > 0) {
+      const developerFilters = options.developerFilters as DeveloperFilter[]
+      finalRepos = filteredRepos.filter((repo) => {
+        const enrichment = developerEnrichmentMap.get(repo.fullName)
+        return developerFilters.some((filter) => {
+          const result = evaluateDeveloperFilter(filter, repo, enrichment)
+          return result.matches
+        })
+      })
+    }
+
+    if (options.readmeLanguage === 'english') {
+      const fullNames = finalRepos.map((r) => r.fullName)
+      try {
+        const readmeTexts = await enrichWithReadmeText(fullNames)
+        finalRepos = finalRepos.filter((repo) => {
+          const text = readmeTexts.get(repo.fullName)
+          if (!text) return false
+          return detectReadmeLanguage(text) === 'english'
+        })
+      } catch {
+        // README language detection failed, continue without filtering
+      }
+    }
+
+    return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
   }
 
   let fallbackRepos: RepositoryWithIntelligence[] = filteredRepos
