@@ -14,7 +14,7 @@ Filter GitHub's trending landscape by language, license, stars, topics, and more
 [![Tailwind CSS 3](https://img.shields.io/badge/Tailwind_CSS_3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TanStack Query 5](https://img.shields.io/badge/TanStack_Query_5-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)](https://tanstack.com/query)
 [![GitHub REST + GraphQL](https://img.shields.io/badge/GitHub_REST_%2B_GraphQL-181717?style=for-the-badge&logo=github&logoColor=white)](https://docs.github.com/en/rest)
-[![Made with OpenCode](https://img.shields.io/badge/Made_with_OpenCode-6C47FF?style=for-the-badge&logo=openai&logoColor=white)](https://opencode.ai)
+[![Created with OpenCode](https://raw.githubusercontent.com/openchamber/openchamber/main/docs/references/badges/created-with-opencode.svg)](https://opencode.ai)
 
 ---
 
