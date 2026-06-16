@@ -163,7 +163,7 @@ src/
 ### Install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/plamen5rov/github-dashboard.git
 cd github-dashboard
 npm install
 ```
