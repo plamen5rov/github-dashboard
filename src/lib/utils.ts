@@ -1,5 +1,6 @@
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { TIME_RANGES } from './constants'
+import { OSI_LICENSE_IDS } from './licenseLegend'
 import type { TimeRange } from './constants'
 
 export type SortField = 'stars' | 'forks' | 'updated' | 'pull_requests' | 'issues' | 'best_match'
@@ -104,12 +105,5 @@ export function isOSILicense(spdxId: string | null): boolean {
   if (!spdxId || spdxId === 'NOASSERTION' || spdxId === 'Other') {
     return false
   }
-  const OSI_APPROVED = new Set([
-    'MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-2.1', 'LGPL-3.0',
-    'MPL-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'Unlicense',
-    'CC0-1.0', 'BSL-1.0', 'Zlib', 'Artistic-2.0', 'EPL-1.0',
-    'EPL-2.0', 'AGPL-3.0', 'EUPL-1.1', 'EUPL-1.2', 'OFL-1.1',
-    'WTFPL', '0BSD', 'BlueOak-1.0.0',
-  ])
-  return OSI_APPROVED.has(spdxId)
+  return OSI_LICENSE_IDS.has(spdxId)
 }

@@ -98,6 +98,13 @@ export const LICENSE_LEGEND: LicenseInfo[] = [
   },
 ]
 
+const ADDITIONAL_OSI = ['Artistic-2.0', 'EPL-1.0', 'EPL-2.0', 'EUPL-1.1', 'EUPL-1.2', 'OFL-1.1', 'WTFPL', '0BSD', 'BlueOak-1.0.0']
+
+export const OSI_LICENSE_IDS = new Set([
+  ...LICENSE_LEGEND.map((l) => l.spdxId),
+  ...ADDITIONAL_OSI,
+])
+
 export const CATEGORY_LABELS: Record<LicenseInfo['category'], string> = {
   permissive: 'Permissive',
   copyleft: 'Copyleft',

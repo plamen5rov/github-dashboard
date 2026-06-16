@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface SearchInputProps {
   value: string
@@ -7,21 +7,15 @@ interface SearchInputProps {
 
 function SearchInput({ value, onChange }: SearchInputProps) {
   const [inputValue, setInputValue] = useState(value)
-
-  const debouncedUpdate = useCallback(
-    (val: string) => {
-      const timer = setTimeout(() => onChange(val), 400)
-      return () => clearTimeout(timer)
-    },
-    [onChange],
-  )
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
-    if (inputValue !== value) {
-      const cleanup = debouncedUpdate(inputValue)
-      return cleanup
-    }
-  }, [inputValue, value, debouncedUpdate])
+    if (inputValue === value) return
+    timerRef.current = setTimeout(() => onChangeRef.current(inputValue), 400)
+    return () => clearTimeout(timerRef.current)
+  }, [inputValue, value])
 
   useEffect(() => {
     setInputValue(value)
