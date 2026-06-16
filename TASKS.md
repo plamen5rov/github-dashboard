@@ -17,9 +17,9 @@
 - **Fix:** Extract `src/components/Panel.tsx` (portal, overlay, header, close button) and `src/components/Icons.tsx` (StarIcon, ForkIcon, CloseIcon, BookmarkIcon, etc.)
 - **Files:** +2 new, modify 6 + RepoCard + Settings → 8 (BookmarksPanel, CollectionsPanel, FollowedTopicsManager, IgnoreListManager, Home, FilterSidebar, RepoCard, Settings)
 
-### A3. Remove duplicate GraphQL enrichment
-- **Problem:** `enrichWithGraphQL` and `enrichWithDeveloperData` in `github.ts` share ~80% of their query-building and fetch logic
-- **Fix:** Have `enrichWithDeveloperData` build its results on top of `enrichWithGraphQL` results, or extract a shared `buildGraphQLRepoQuery(repoNames, fields)` builder
+### A3. Remove duplicate GraphQL enrichment ✅
+- **Problem:** `enrichWithGraphQL` and `enrichWithDeveloperData` called sequentially when dev filters active — the latter is a strict superset of the former
+- **Fix:** In `fetchReposWithIntelligence`, when dev filters are active, skip `enrichWithGraphQL` and extract base fields (openPRs, languageColor) from `enrichWithDeveloperData`'s result; fall back to `enrichWithGraphQL` if it fails
 - **Files:** `src/lib/github.ts`
 
 ### A4. Unify `UseReposOptions` extending `BuildQueryOptions`
@@ -52,11 +52,11 @@
 
 ## Category C: Optimization Opportunities (Medium Impact)
 
-### C1. Merge GraphQL queries (conditional)
-- **Problem:** 3 sequential GraphQL round-trips per page of results
-- **Fix:** Merge `enrichWithGraphQL` + `enrichWithDeveloperData` into one query (developer data is a strict superset). README query could optionally merge too.
+### C1. Merge GraphQL queries (conditional) 🔶
+- **Problem:** 3 sequential GraphQL round-trips per page → now down to 2 (A3 merged enrichGraphQL + enrichDeveloperData)
+- **Remaining:** Optionally merge README query into the same GraphQL call
 - **Files:** `src/lib/github.ts`
-- **Note:** Requires careful measurement — may impact UX if GraphQL is slow
+- **Note:** Requires careful measurement — may impact UX if GraphQL is slow. Low priority since A3 already merged the two enrichment calls.
 
 ### C2. Sync `isOSILicense` Set with `licenseLegend.ts`
 - **Problem:** OSI-approved license list is duplicated as an inline Set in `utils.ts` and a separate array in `licenseLegend.ts` — they can drift out of sync

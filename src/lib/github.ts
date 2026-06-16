@@ -378,31 +378,35 @@ export async function fetchReposWithIntelligence(
     const fullNameMap = new Map(filteredRepos.map((r) => [r.fullName, r]))
     const fullNames = Array.from(fullNameMap.keys())
 
-    try {
-      const enriched = await enrichWithGraphQL(fullNames)
-      filteredRepos.forEach((repo) => {
-        const extra = enriched.get(repo.fullName)
-        if (extra) {
-          repo.openPRs = extra.openPRs
-          repo.languageColor = extra.languageColor
-        }
-      })
-    } catch {
-      // GraphQL enrichment failed, continue with REST data
-    }
-
     let finalRepos: RepositoryWithIntelligence[] = filteredRepos
-
     let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
-    if (options.developerFilters && options.developerFilters.length > 0) {
+    const hasDevFilters = options.developerFilters && options.developerFilters.length > 0
+
+    if (hasDevFilters) {
       try {
         developerEnrichmentMap = await enrichWithDeveloperData(fullNames)
+        filteredRepos.forEach((repo) => {
+          const extra = developerEnrichmentMap.get(repo.fullName)
+          if (extra) {
+            repo.openPRs = extra.openPRs
+            repo.languageColor = extra.languageColor
+          }
+        })
       } catch {
-        // Developer data enrichment failed, continue without it
+        try {
+          const enriched = await enrichWithGraphQL(fullNames)
+          filteredRepos.forEach((repo) => {
+            const extra = enriched.get(repo.fullName)
+            if (extra) {
+              repo.openPRs = extra.openPRs
+              repo.languageColor = extra.languageColor
+            }
+          })
+        } catch {
+          // GraphQL enrichment failed, continue with REST data
+        }
       }
-    }
 
-    if (options.developerFilters && options.developerFilters.length > 0) {
       const developerFilters = options.developerFilters as DeveloperFilter[]
       finalRepos = filteredRepos.filter((repo) => {
         const enrichment = developerEnrichmentMap.get(repo.fullName)
@@ -411,6 +415,19 @@ export async function fetchReposWithIntelligence(
           return result.matches
         })
       })
+    } else {
+      try {
+        const enriched = await enrichWithGraphQL(fullNames)
+        filteredRepos.forEach((repo) => {
+          const extra = enriched.get(repo.fullName)
+          if (extra) {
+            repo.openPRs = extra.openPRs
+            repo.languageColor = extra.languageColor
+          }
+        })
+      } catch {
+        // GraphQL enrichment failed, continue with REST data
+      }
     }
 
     if (options.readmeLanguage === 'english') {
