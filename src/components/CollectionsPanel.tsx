@@ -5,6 +5,8 @@ import type { RepositoryWithIntelligence } from '../types/github'
 import { formatRelativeTime, formatNumber } from '../lib/utils'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
+import Panel from './Panel'
+import { StarIcon, ForkIcon, ChevronUpIcon, TrashIcon, CloseIcon } from './Icons'
 
 interface CollectionsPanelProps {
   isOpen: boolean
@@ -58,243 +60,212 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
     fetchRepos()
   }, [isOpen, prefs.collections])
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="w-full max-w-4xl max-h-[85vh] bg-github-darker border border-github-border rounded-xl shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-github-border">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-github-text">Collections</h2>
-            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
-              {prefs.collections.length} collection{prefs.collections.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded"
-            aria-label="Close collections panel"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <Panel
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Collections"
+      headerExtra={
+        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
+          {prefs.collections.length} collection{prefs.collections.length !== 1 ? 's' : ''}
+        </span>
+      }
+      footer={
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="w-full px-4 py-2 bg-github-accent/10 text-github-accent rounded-lg hover:bg-github-accent/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-github-accent"
+        >
+          + New Collection
+        </button>
+      }
+    >
+      {prefs.collections.length === 0 && !showCreateForm ? (
+        <div className="text-center py-12">
+          <svg className="mx-auto w-16 h-16 text-github-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <p className="text-github-muted mb-2">No collections yet</p>
+          <p className="text-xs text-github-muted">Create a collection and add repos from the folder icon on any repo card</p>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          {prefs.collections.length === 0 && !showCreateForm ? (
-            <div className="text-center py-12">
-              <svg className="mx-auto w-16 h-16 text-github-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <p className="text-github-muted mb-2">No collections yet</p>
-              <p className="text-xs text-github-muted">Create a collection and add repos from the folder icon on any repo card</p>
+      ) : (
+        <div className="space-y-3">
+          {showCreateForm && (
+            <div className="p-4 bg-github-dark border border-github-border rounded-lg">
+              <h3 className="text-sm font-medium text-github-text mb-3">New Collection</h3>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Collection name"
+                className="w-full px-3 py-2 bg-github-darker border border-github-border rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent mb-2"
+              />
+              <input
+                type="text"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Description (optional)"
+                className="w-full px-3 py-2 bg-github-darker border border-github-border rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent mb-3"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (newName.trim()) {
+                      addCollection(newName.trim(), newDescription.trim() || undefined)
+                      setNewName('')
+                      setNewDescription('')
+                      setShowCreateForm(false)
+                    }
+                  }}
+                  className="px-4 py-2 bg-github-accent text-white rounded-lg hover:bg-github-accent/80 text-sm focus:outline-none focus:ring-2 focus:ring-github-accent"
+                >
+                  Create
+                </button>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="px-4 py-2 bg-github-border text-github-text rounded-lg hover:bg-github-border/80 text-sm focus:outline-none focus:ring-2 focus:ring-github-accent"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {showCreateForm && (
-                <div className="p-4 bg-github-dark border border-github-border rounded-lg">
-                  <h3 className="text-sm font-medium text-github-text mb-3">New Collection</h3>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Collection name"
-                    className="w-full px-3 py-2 bg-github-darker border border-github-border rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent mb-2"
-                  />
-                  <input
-                    type="text"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="Description (optional)"
-                    className="w-full px-3 py-2 bg-github-darker border border-github-border rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent mb-3"
-                  />
-                  <div className="flex gap-2">
+          )}
+
+          {prefs.collections.map((collection) => {
+            const isExpanded = expandedCollection === collection.id
+            const repoCount = collection.repoFullNames.length
+
+            return (
+              <div
+                key={collection.id}
+                className="bg-github-dark border border-github-border rounded-lg overflow-hidden"
+              >
+                <button
+                  onClick={() => setExpandedCollection(isExpanded ? null : collection.id)}
+                  className="w-full p-4 flex items-start justify-between text-left hover:bg-github-border/30 transition-colors"
+                >
+                  <div>
+                    <h3 className="text-sm font-semibold text-github-text">{collection.name}</h3>
+                    {collection.description && (
+                      <p className="text-xs text-github-muted mt-1">{collection.description}</p>
+                    )}
+                    <p className="text-xs text-github-muted mt-2">
+                      {repoCount} repo{repoCount !== 1 ? 's' : ''} · Updated {new Date(collection.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isExpanded && <ChevronUpIcon />}
                     <button
-                      onClick={() => {
-                        if (newName.trim()) {
-                          addCollection(newName.trim(), newDescription.trim() || undefined)
-                          setNewName('')
-                          setNewDescription('')
-                          setShowCreateForm(false)
-                        }
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteCollection(collection.id)
                       }}
-                      className="px-4 py-2 bg-github-accent text-white rounded-lg hover:bg-github-accent/80 text-sm focus:outline-none focus:ring-2 focus:ring-github-accent"
+                      className="p-1 text-github-muted hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                      aria-label={`Delete collection ${collection.name}`}
                     >
-                      Create
-                    </button>
-                    <button
-                      onClick={() => setShowCreateForm(false)}
-                      className="px-4 py-2 bg-github-border text-github-text rounded-lg hover:bg-github-border/80 text-sm focus:outline-none focus:ring-2 focus:ring-github-accent"
-                    >
-                      Cancel
+                      <TrashIcon />
                     </button>
                   </div>
-                </div>
-              )}
+                </button>
 
-              {prefs.collections.map((collection) => {
-                const isExpanded = expandedCollection === collection.id
-                const repoCount = collection.repoFullNames.length
-
-                return (
-                  <div
-                    key={collection.id}
-                    className="bg-github-dark border border-github-border rounded-lg overflow-hidden"
-                  >
-                    <button
-                      onClick={() => setExpandedCollection(isExpanded ? null : collection.id)}
-                      className="w-full p-4 flex items-start justify-between text-left hover:bg-github-border/30 transition-colors"
-                    >
-                      <div>
-                        <h3 className="text-sm font-semibold text-github-text">{collection.name}</h3>
-                        {collection.description && (
-                          <p className="text-xs text-github-muted mt-1">{collection.description}</p>
-                        )}
-                        <p className="text-xs text-github-muted mt-2">
-                          {repoCount} repo{repoCount !== 1 ? 's' : ''} · Updated {new Date(collection.updatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isExpanded && (
-                          <svg className="w-4 h-4 text-github-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                          </svg>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            deleteCollection(collection.id)
-                          }}
-                          className="p-1 text-github-muted hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                          aria-label={`Delete collection ${collection.name}`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </button>
-
-                    {isExpanded && (
-                      <div className="border-t border-github-border p-4">
-                        {repoCount === 0 ? (
-                          <p className="text-xs text-github-muted text-center py-4">
-                            No repos yet. Click the 📁 icon on any repo card to add it here.
-                          </p>
-                        ) : loading ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {Array.from({ length: repoCount }).map((_, i) => (
-                              <div key={i} className="p-3 bg-github-darker border border-github-border rounded animate-pulse">
-                                <div className="flex items-start gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-github-border" />
-                                  <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-github-border rounded w-3/4" />
-                                    <div className="h-3 bg-github-border rounded w-full" />
-                                  </div>
-                                </div>
+                {isExpanded && (
+                  <div className="border-t border-github-border p-4">
+                    {repoCount === 0 ? (
+                      <p className="text-xs text-github-muted text-center py-4">
+                        No repos yet. Click the 📁 icon on any repo card to add it here.
+                      </p>
+                    ) : loading ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {Array.from({ length: repoCount }).map((_, i) => (
+                          <div key={i} className="p-3 bg-github-darker border border-github-border rounded animate-pulse">
+                            <div className="flex items-start gap-2">
+                              <div className="w-8 h-8 rounded-full bg-github-border" />
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-github-border rounded w-3/4" />
+                                <div className="h-3 bg-github-border rounded w-full" />
                               </div>
-                            ))}
+                            </div>
                           </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {collection.repoFullNames.map((fullName) => {
-                              const repo = reposMap.get(fullName)
-                              return (
-                                <div
-                                  key={fullName}
-                                  className="p-3 bg-github-darker border border-github-border rounded-lg hover:border-github-accent/30 transition-colors"
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="min-w-0">
-                                      <a
-                                        href={repo?.htmlUrl || `https://github.com/${fullName}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm font-semibold text-github-accent hover:underline truncate block"
-                                      >
-                                        {fullName}
-                                      </a>
-                                      {repo?.description && (
-                                        <p className="text-xs text-github-muted line-clamp-2 mt-0.5">{repo.description}</p>
-                                      )}
-                                    </div>
-                                    <button
-                                      onClick={() => removeFromCollection(collection.id, fullName)}
-                                      className="flex-shrink-0 p-1 text-github-muted hover:text-red-400 focus:outline-none rounded"
-                                      aria-label={`Remove ${fullName} from collection`}
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </button>
-                                  </div>
-
-                                  {repo && (
-                                    <>
-                                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                        <LanguageBadge language={repo.language} color={repo.languageColor} />
-                                        <LicenseBadge spdxId={repo.license?.spdxId || null} />
-                                      </div>
-
-                                      <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-github-muted">
-                                        <span className="flex items-center gap-1">
-                                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.37a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" />
-                                          </svg>
-                                          {formatNumber(repo.stars)}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                                          </svg>
-                                          {formatNumber(repo.forks)}
-                                        </span>
-                                        <span className="ml-auto">{formatRelativeTime(repo.pushedAt)}</span>
-                                      </div>
-
-                                      {repo.topics.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-github-border/50">
-                                          {repo.topics.slice(0, 3).map((topic) => (
-                                            <button
-                                              key={topic}
-                                              onClick={() => onTopicClick(topic)}
-                                              className="px-1.5 py-0.5 bg-github-accent/10 text-github-accent rounded-full text-xs hover:bg-github-accent/20"
-                                            >
-                                              {topic}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {collection.repoFullNames.map((fullName) => {
+                          const repo = reposMap.get(fullName)
+                          return (
+                            <div
+                              key={fullName}
+                              className="p-3 bg-github-darker border border-github-border rounded-lg hover:border-github-accent/30 transition-colors"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <a
+                                    href={repo?.htmlUrl || `https://github.com/${fullName}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-semibold text-github-accent hover:underline truncate block"
+                                  >
+                                    {fullName}
+                                  </a>
+                                  {repo?.description && (
+                                    <p className="text-xs text-github-muted line-clamp-2 mt-0.5">{repo.description}</p>
                                   )}
                                 </div>
-                              )
-                            })}
-                          </div>
-                        )}
+                                <button
+                                  onClick={() => removeFromCollection(collection.id, fullName)}
+                                  className="flex-shrink-0 p-1 text-github-muted hover:text-red-400 focus:outline-none rounded"
+                                  aria-label={`Remove ${fullName} from collection`}
+                                >
+                                  <CloseIcon className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              {repo && (
+                                <>
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <LanguageBadge language={repo.language} color={repo.languageColor} />
+                                    <LicenseBadge spdxId={repo.license?.spdxId || null} />
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-github-muted">
+                                    <span className="flex items-center gap-1">
+                                      <StarIcon />
+                                      {formatNumber(repo.stars)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <ForkIcon />
+                                      {formatNumber(repo.forks)}
+                                    </span>
+                                    <span className="ml-auto">{formatRelativeTime(repo.pushedAt)}</span>
+                                  </div>
+
+                                  {repo.topics.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-github-border/50">
+                                      {repo.topics.slice(0, 3).map((topic) => (
+                                        <button
+                                          key={topic}
+                                          onClick={() => onTopicClick(topic)}
+                                          className="px-1.5 py-0.5 bg-github-accent/10 text-github-accent rounded-full text-xs hover:bg-github-accent/20"
+                                        >
+                                          {topic}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
-                )
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            )
+          })}
         </div>
-
-        <div className="p-4 border-t border-github-border">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="w-full px-4 py-2 bg-github-accent/10 text-github-accent rounded-lg hover:bg-github-accent/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-github-accent"
-          >
-            + New Collection
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+    </Panel>
   )
 }
 

@@ -11,6 +11,7 @@ import { fetchCoreRateLimit } from '../lib/github'
 import type { SortState } from '../hooks/useSort'
 import RepoGrid from '../components/RepoGrid'
 import { formatNumber } from '../lib/utils'
+import { BookmarkIcon, FolderIcon, ChevronUpIcon, ChevronDownIcon, SunIcon, MoonIcon } from '../components/Icons'
 import CollectionsPanel from '../components/CollectionsPanel'
 import FollowedTopicsManager from '../components/FollowedTopicsManager'
 import IgnoreListManager from '../components/IgnoreListManager'
@@ -113,9 +114,7 @@ function Home() {
               aria-label="Bookmarks"
               title="Bookmarks"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
+              <BookmarkIcon />
               {prefs.bookmarks.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-yellow-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
                   {prefs.bookmarks.length > 9 ? '9+' : prefs.bookmarks.length}
@@ -128,9 +127,7 @@ function Home() {
               aria-label="Collections"
               title="Collections"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+              <FolderIcon />
               {prefs.collections.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
                   {prefs.collections.length > 9 ? '9+' : prefs.collections.length}
@@ -174,15 +171,7 @@ function Home() {
               className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
-              {theme === 'dark' ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
             <Link
               to="/settings"
@@ -226,13 +215,9 @@ function Home() {
                 title={sort.order === 'asc' ? 'Ascending' : 'Descending'}
               >
                 {sort.order === 'asc' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
+                  <ChevronUpIcon />
                 ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDownIcon />
                 )}
               </button>
               <div className="w-px h-6 bg-github-border" />

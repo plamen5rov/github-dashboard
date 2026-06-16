@@ -6,6 +6,7 @@ import type { DeveloperFilter } from '../hooks/useFilters'
 import SearchInput from './SearchInput'
 import LicenseLegend from './LicenseLegend'
 import { LANGUAGE_COLORS } from './LanguageBadge'
+import { CloseIcon, ChevronDownIcon } from './Icons'
 
 interface FilterSidebarProps {
   isOpen: boolean
@@ -72,14 +73,7 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
         className="flex items-center justify-between flex-1 text-sm font-semibold text-github-text hover:text-github-accent transition-colors"
       >
         <span>{title}</span>
-        <svg
-          className={`w-4 h-4 transition-transform ${collapsedSections[section] ? '' : 'rotate-180'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDownIcon className={`w-4 h-4 transition-transform ${collapsedSections[section] ? '' : 'rotate-180'}`} />
       </button>
       {rightElement && <div className="ml-2">{rightElement}</div>}
     </div>
@@ -111,9 +105,7 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
               className="p-1 text-github-muted hover:text-github-text"
               aria-label="Close filters"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <CloseIcon />
             </button>
           </div>
 

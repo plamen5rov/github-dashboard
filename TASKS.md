@@ -12,10 +12,10 @@
 - **Files:** +1 new, modify 3
 - **Status:** Done — `c9b0563`
 
-### A2. Create `Panel` modal wrapper + `Icons` component
+### A2. Create `Panel` modal wrapper + `Icons` component ✅
 - **Problem:** 4 components share identical overlay/header/close patterns; SVG icons duplicated 2-4 times
 - **Fix:** Extract `src/components/Panel.tsx` (portal, overlay, header, close button) and `src/components/Icons.tsx` (StarIcon, ForkIcon, CloseIcon, BookmarkIcon, etc.)
-- **Files:** +2 new, modify 6 (BookmarksPanel, CollectionsPanel, FollowedTopicsManager, IgnoreListManager, Home, FilterSidebar)
+- **Files:** +2 new, modify 6 + RepoCard + Settings → 8 (BookmarksPanel, CollectionsPanel, FollowedTopicsManager, IgnoreListManager, Home, FilterSidebar, RepoCard, Settings)
 
 ### A3. Remove duplicate GraphQL enrichment
 - **Problem:** `enrichWithGraphQL` and `enrichWithDeveloperData` in `github.ts` share ~80% of their query-building and fetch logic
