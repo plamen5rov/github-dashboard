@@ -1,5 +1,10 @@
 # DONE.md — Changelog
 
+## Fixes
+- [2026-06-16] Fixed mutation bug in fetchReposWithIntelligence causing -language clauses to double on TanStack Query retry — spread-copied options into queryOptions to avoid in-place mutation (files: src/lib/github.ts)
+- [2026-06-16] Removed dead code in FilterSidebar: unused showLanguagePicker state, click-outside useEffect, langPickerRef, and unused imports (files: src/components/FilterSidebar.tsx)
+- [2026-06-16] Added missing rawCount to fetchReposWithIntelligence return type annotation (files: src/lib/github.ts)
+
 ## Phase 12: GitHub User Personalization
 - [2026-05-08] Added personalization types: Bookmark, Collection, Watchlist, TrendAlert, UserPreferences
 - [2026-05-08] Created userPreferences.ts for localStorage persistence with full CRUD API
