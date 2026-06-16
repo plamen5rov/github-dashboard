@@ -1,4 +1,4 @@
-import type { RepositoryWithIntelligence, GraphQLRepositoryEnrichment } from '../types/github'
+import type { Repository, GraphQLRepositoryEnrichment } from '../types/github'
 import type { DeveloperFilter } from '../hooks/useFilters'
 
 interface DeveloperFilterResult {
@@ -8,7 +8,7 @@ interface DeveloperFilterResult {
 
 export function evaluateDeveloperFilter(
   filter: DeveloperFilter,
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   switch (filter) {
@@ -38,7 +38,7 @@ export function evaluateDeveloperFilter(
 }
 
 function evaluateBeginnerFriendly(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
 ): DeveloperFilterResult {
   const hasBeginnerTopics = repo.topics.some((t) =>
     ['beginner-friendly', 'tutorial', 'learning', 'education', 'examples', 'good-first-issue', 'beginner'].includes(t),
@@ -55,7 +55,7 @@ function evaluateBeginnerFriendly(
 }
 
 function evaluateGoodFirstIssue(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   const goodFirstIssues = enrichment?.goodFirstIssueCount ?? 0
@@ -77,7 +77,7 @@ function evaluateGoodFirstIssue(
 }
 
 function evaluateActivelyMaintained(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   const daysSincePush = Math.floor(
@@ -97,7 +97,7 @@ function evaluateActivelyMaintained(
 }
 
 function evaluateSoloMaintained(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   const contributorCount = enrichment?.contributorCount ?? 1
@@ -110,7 +110,7 @@ function evaluateSoloMaintained(
 }
 
 function evaluateProductionReady(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
 ): DeveloperFilterResult {
   const isStable = repo.stars > 500 && repo.forks > 50
   const hasLicense = repo.license !== null
@@ -125,7 +125,7 @@ function evaluateProductionReady(
 }
 
 function evaluateAIRelated(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
 ): DeveloperFilterResult {
   const aiTopics = repo.topics.filter((t) =>
     [
@@ -160,7 +160,7 @@ function evaluateAIRelated(
 }
 
 function evaluateIndieProject(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   const indieTopics = repo.topics.filter((t) =>
@@ -179,7 +179,7 @@ function evaluateIndieProject(
 }
 
 function evaluateNewExploding(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
 ): DeveloperFilterResult {
   const repoAge = Math.floor(
     (Date.now() - new Date(repo.createdAt).getTime()) / (1000 * 60 * 60 * 24),
@@ -196,7 +196,7 @@ function evaluateNewExploding(
 }
 
 function evaluateLowCompetition(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
 ): DeveloperFilterResult {
   const matches = repo.license !== null
 
@@ -207,7 +207,7 @@ function evaluateLowCompetition(
 }
 
 function evaluateEnterpriseGrade(
-  repo: RepositoryWithIntelligence,
+  repo: Repository,
   enrichment?: GraphQLRepositoryEnrichment,
 ): DeveloperFilterResult {
   const enterpriseTopics = repo.topics.filter((t) =>

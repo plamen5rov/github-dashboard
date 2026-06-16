@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import type { RepositoryWithIntelligence } from '../types/github'
+import type { Repository } from '../types/github'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import RepoCard from './RepoCard'
 
 interface RepoGridProps {
-  repos: RepositoryWithIntelligence[]
+  repos: Repository[]
   hasNextPage: boolean
   isFetchingNextPage: boolean
   isLoading: boolean

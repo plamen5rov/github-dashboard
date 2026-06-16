@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { fetchReposWithIntelligence } from '../lib/github'
-import type { RepositoryWithIntelligence, RateLimitInfo } from '../types/github'
+import type { Repository, RateLimitInfo } from '../types/github'
 import type { BuildQueryOptions, SortField, SortOrder } from '../lib/utils'
 
 interface UseReposOptions extends BuildQueryOptions {
@@ -9,7 +9,7 @@ interface UseReposOptions extends BuildQueryOptions {
 }
 
 interface ReposPage {
-  repos: RepositoryWithIntelligence[]
+  repos: Repository[]
   totalCount: number
   rateLimit: RateLimitInfo
   rawCount: number

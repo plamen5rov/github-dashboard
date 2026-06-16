@@ -3,7 +3,6 @@ import type {
   Repository,
   RateLimitInfo,
   GitHubAPIError,
-  RepositoryWithIntelligence,
   GraphQLRepositoryEnrichment,
 } from '../types/github'
 import { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, DEFAULT_PER_PAGE } from './constants'
@@ -294,7 +293,7 @@ async function enrichWithReadmeText(
   return result
 }
 
-export async function fetchRepoByFullName(fullName: string): Promise<RepositoryWithIntelligence | null> {
+export async function fetchRepoByFullName(fullName: string): Promise<Repository | null> {
   const [owner, name] = fullName.split('/')
   const url = `${GITHUB_API_BASE}/repos/${owner}/${name}`
   const response = await fetch(url, { headers: getHeaders() })
@@ -341,7 +340,7 @@ export async function fetchReposWithIntelligence(
   sort: SortField,
   order: SortOrder,
   page: number = 1,
-): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number }> {
+): Promise<{ repos: Repository[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number }> {
   const prefs = loadPreferences()
 
   const queryOptions = { ...options }
@@ -378,7 +377,7 @@ export async function fetchReposWithIntelligence(
     const fullNameMap = new Map(filteredRepos.map((r) => [r.fullName, r]))
     const fullNames = Array.from(fullNameMap.keys())
 
-    let finalRepos: RepositoryWithIntelligence[] = filteredRepos
+    let finalRepos: Repository[] = filteredRepos
     let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
     const hasDevFilters = options.developerFilters && options.developerFilters.length > 0
 
@@ -447,7 +446,7 @@ export async function fetchReposWithIntelligence(
     return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
   }
 
-  let fallbackRepos: RepositoryWithIntelligence[] = filteredRepos
+  let fallbackRepos: Repository[] = filteredRepos
 
   if (options.readmeLanguage === 'english') {
     const token = getToken()

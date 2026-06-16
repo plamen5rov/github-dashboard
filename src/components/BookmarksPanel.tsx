@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { usePersonalization } from '../hooks/usePersonalization'
 import { getToken, fetchRepoByFullName } from '../lib/github'
-import type { RepositoryWithIntelligence } from '../types/github'
+import type { Repository } from '../types/github'
 import { formatRelativeTime, formatNumber } from '../lib/utils'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
@@ -16,7 +16,7 @@ interface BookmarksPanelProps {
 
 function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) {
   const { prefs, toggleBookmark } = usePersonalization()
-  const [repos, setRepos] = useState<Map<string, RepositoryWithIntelligence>>(new Map())
+  const [repos, setRepos] = useState<Map<string, Repository>>(new Map())
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -30,7 +30,7 @@ function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) 
         return
       }
 
-      const fetched = new Map<string, RepositoryWithIntelligence>()
+      const fetched = new Map<string, Repository>()
       await Promise.allSettled(
         prefs.bookmarks.map(async (bookmark) => {
           try {

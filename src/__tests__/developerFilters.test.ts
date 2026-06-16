@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { evaluateDeveloperFilter } from '../lib/developerFilters'
-import type { RepositoryWithIntelligence, GraphQLRepositoryEnrichment } from '../types/github'
+import type { Repository, GraphQLRepositoryEnrichment } from '../types/github'
 
-function createMockRepo(overrides: Partial<RepositoryWithIntelligence> = {}): RepositoryWithIntelligence {
+function createMockRepo(overrides: Partial<Repository> = {}): Repository {
   return {
     id: 1,
     name: 'test-repo',

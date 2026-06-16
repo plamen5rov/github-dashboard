@@ -43,10 +43,10 @@
 - **Fix:** Remove explicit `setPrefs(loadPreferences())` calls; rely on event listener alone
 - **Files:** `src/hooks/usePersonalization.ts`
 
-### B3. Eliminate `RepositoryWithIntelligence` empty alias
+### B3. Eliminate `RepositoryWithIntelligence` empty alias ✅
 - **Problem:** `RepositoryWithIntelligence extends Repository {}` adds zero fields; purely nominal
 - **Fix:** Remove the type alias and use `Repository` directly everywhere
-- **Files:** `src/types/github.ts` + 6 consumers
+- **Files:** `src/types/github.ts` + 8 consumers
 
 ---
 

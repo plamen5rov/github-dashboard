@@ -71,8 +71,6 @@ export interface GitHubAPIError {
   documentation_url?: string
 }
 
-export interface RepositoryWithIntelligence extends Repository {}
-
 export interface GraphQLRepositoryEnrichment {
   openPRs: number
   openIssues: number

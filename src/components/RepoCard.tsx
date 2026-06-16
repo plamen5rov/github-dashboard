@@ -1,4 +1,4 @@
-import type { RepositoryWithIntelligence } from '../types/github'
+import type { Repository } from '../types/github'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
 import { formatNumber, formatRelativeTime } from '../lib/utils'
@@ -10,7 +10,7 @@ import { useState, useRef } from 'react'
 import { StarIcon, ForkIcon, BookmarkIcon, FolderIcon, CheckmarkIcon, PullRequestIcon, IssueIcon } from './Icons'
 
 interface RepoCardProps {
-  repo: RepositoryWithIntelligence
+  repo: Repository
   onTopicClick: (topic: string) => void
   activeDeveloperFilters?: DeveloperFilter[]
 }
