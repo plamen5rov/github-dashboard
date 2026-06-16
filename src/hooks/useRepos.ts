@@ -1,21 +1,9 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { fetchReposWithIntelligence } from '../lib/github'
 import type { RepositoryWithIntelligence, RateLimitInfo } from '../types/github'
-import type { BuildQueryOptions } from '../lib/utils'
-import type { SortField, SortOrder } from '../lib/utils'
-import type { TimeRange } from '../lib/constants'
+import type { BuildQueryOptions, SortField, SortOrder } from '../lib/utils'
 
-interface UseReposOptions {
-  keyword?: string
-  timeRange: TimeRange
-  language?: string[]
-  licenseType?: string
-  minStars?: number
-  topics?: string[]
-  includeArchived?: boolean
-  includeForks?: boolean
-  readmeLanguage?: 'all' | 'english'
-  developerFilters?: string[]
+interface UseReposOptions extends BuildQueryOptions {
   sort: SortField
   order: SortOrder
 }
@@ -27,26 +15,13 @@ interface ReposPage {
   rawCount: number
 }
 
-export function useRepos(options: UseReposOptions) {
-  const queryOptions: BuildQueryOptions = {
-    keyword: options.keyword,
-    timeRange: options.timeRange,
-    language: options.language,
-    licenseType: options.licenseType,
-    minStars: options.minStars,
-    topics: options.topics,
-    includeArchived: options.includeArchived,
-    includeForks: options.includeForks,
-    readmeLanguage: options.readmeLanguage,
-    developerFilters: options.developerFilters,
-  }
-
-  const queryKey = ['repos', queryOptions, options.sort, options.order]
+export function useRepos({ sort, order, ...queryOptions }: UseReposOptions) {
+  const queryKey = ['repos', queryOptions, sort, order]
 
   const result = useInfiniteQuery<ReposPage>({
     queryKey,
     queryFn: ({ pageParam = 1 }) =>
-      fetchReposWithIntelligence(queryOptions, options.sort, options.order, pageParam as number),
+      fetchReposWithIntelligence(queryOptions, sort, order, pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.rawCount === 0) return undefined
       return allPages.length + 1

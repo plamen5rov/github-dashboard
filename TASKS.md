@@ -22,10 +22,10 @@
 - **Fix:** In `fetchReposWithIntelligence`, when dev filters are active, skip `enrichWithGraphQL` and extract base fields (openPRs, languageColor) from `enrichWithDeveloperData`'s result; fall back to `enrichWithGraphQL` if it fails
 - **Files:** `src/lib/github.ts`
 
-### A4. Unify `UseReposOptions` extending `BuildQueryOptions`
+### A4. Unify `UseReposOptions` extending `BuildQueryOptions` ✅
 - **Problem:** `UseReposOptions` and `BuildQueryOptions` are semantically identical but manually mapped (11 lines of boilerplate in `useRepos.ts`)
-- **Fix:** `UseReposOptions extends BuildQueryOptions` + sort/order
-- **Files:** `src/hooks/useRepos.ts`, `src/lib/utils.ts`
+- **Fix:** `UseReposOptions extends BuildQueryOptions` + sort/order; destructure the rest via spread
+- **Files:** `src/hooks/useRepos.ts`
 
 ### A5. [DEPRECATED — replaced by A4]
 
