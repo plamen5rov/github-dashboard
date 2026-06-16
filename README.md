@@ -116,6 +116,8 @@ All data stored in `localStorage` — no backend required.
 ```text
 src/
 ├── components/
+│   ├── Icons.tsx                  # SVG icon components
+│   ├── Panel.tsx                  # Reusable modal/wrapper panel
 │   ├── RepoCard.tsx               # Individual repo display card
 │   ├── RepoGrid.tsx               # Grid layout with infinite scroll
 │   ├── FilterSidebar.tsx          # Collapsible sidebar with all filters
@@ -128,6 +130,7 @@ src/
 │   ├── FollowedTopicsManager.tsx  # Topic following modal
 │   └── IgnoreListManager.tsx      # Ignore list modal
 ├── hooks/
+│   ├── useClickOutside.ts         # Detect clicks outside an element
 │   ├── useRepos.ts                # TanStack Query infinite data hook
 │   ├── useFilters.ts              # URL-synced filter state
 │   ├── useSort.ts                 # URL-synced sort state
