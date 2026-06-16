@@ -1,6 +1,7 @@
 # DONE.md — Changelog
 
 ## Fixes
+- [2026-06-16] Fixed README issues: removed unused TanStack Virtual from tech stack and deps, added missing licenseLegend.ts to project structure, corrected PAT token type instructions (files: README.md, package.json, package-lock.json)
 - [2026-06-16] Fixed mutation bug in fetchReposWithIntelligence causing -language clauses to double on TanStack Query retry — spread-copied options into queryOptions to avoid in-place mutation (files: src/lib/github.ts)
 - [2026-06-16] Removed dead code in FilterSidebar: unused showLanguagePicker state, click-outside useEffect, langPickerRef, and unused imports (files: src/components/FilterSidebar.tsx)
 - [2026-06-16] Added missing rawCount to fetchReposWithIntelligence return type annotation (files: src/lib/github.ts)
