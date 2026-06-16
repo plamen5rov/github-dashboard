@@ -341,19 +341,21 @@ export async function fetchReposWithIntelligence(
   sort: SortField,
   order: SortOrder,
   page: number = 1,
-): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo }> {
+): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo; rawCount?: number }> {
   const prefs = loadPreferences()
+
+  const queryOptions = { ...options }
 
   if (prefs.ignoredLanguages && prefs.ignoredLanguages.length > 0) {
     const ignoredLangs = prefs.ignoredLanguages.map((l) => `-language:${l.toLowerCase()}`).join(' ')
-    if (options.keyword) {
-      options.keyword = `${options.keyword} ${ignoredLangs}`
+    if (queryOptions.keyword) {
+      queryOptions.keyword = `${queryOptions.keyword} ${ignoredLangs}`
     } else {
-      options.keyword = ignoredLangs
+      queryOptions.keyword = ignoredLangs
     }
   }
 
-  const { repos, totalCount: apiTotalCount, rateLimit } = await searchRepositories(options, sort, order, page)
+  const { repos, totalCount: apiTotalCount, rateLimit } = await searchRepositories(queryOptions, sort, order, page)
 
   const filteredRepos = repos.filter((repo) => {
     if (prefs.ignoredTopics && prefs.ignoredTopics.length > 0) {

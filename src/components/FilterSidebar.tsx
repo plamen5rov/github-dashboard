@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useFilters } from '../hooks/useFilters'
 import { TIME_RANGES, COMMON_LICENSES, DEVELOPER_FILTERS } from '../lib/constants'
 import type { TimeRange } from '../lib/constants'
@@ -14,7 +14,6 @@ interface FilterSidebarProps {
 
 function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false)
   const [topicInput, setTopicInput] = useState('')
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     time: false,
@@ -25,23 +24,11 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     developer: false,
     misc: false,
   })
-  const langPickerRef = useRef<HTMLDivElement>(null)
-
   const POPULAR_LANGUAGES = [
     'TypeScript', 'JavaScript', 'Python', 'Rust', 'Go',
     'Java', 'C++', 'C', 'Ruby', 'PHP', 'Swift', 'Kotlin',
     'Dart', 'Vue', 'Svelte', 'Shell', 'Lua', 'Scala',
   ]
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (langPickerRef.current && !langPickerRef.current.contains(e.target as Node)) {
-        setShowLanguagePicker(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   const handleTopicAdd = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && topicInput.trim()) {
@@ -165,7 +152,7 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
           <div className="border-b border-github-border pb-3">
             <SectionHeader title={`Language${filters.language.length > 0 ? ` (${filters.language.length})` : ''}`} section="language" />
             {!collapsedSections.language && (
-              <div ref={langPickerRef} className="relative mt-2">
+              <div className="relative mt-2">
                 <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
                   {POPULAR_LANGUAGES.map((lang) => (
                     <button
