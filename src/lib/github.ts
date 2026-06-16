@@ -341,7 +341,7 @@ export async function fetchReposWithIntelligence(
   sort: SortField,
   order: SortOrder,
   page: number = 1,
-): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo; rawCount?: number }> {
+): Promise<{ repos: RepositoryWithIntelligence[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number }> {
   const prefs = loadPreferences()
 
   const queryOptions = { ...options }

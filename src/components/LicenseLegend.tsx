@@ -1,22 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { LICENSE_LEGEND, CATEGORY_LABELS, CATEGORY_COLORS } from '../lib/licenseLegend'
 import type { LicenseInfo } from '../lib/licenseLegend'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 function LicenseLegend() {
   const [isOpen, setIsOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen])
+  useClickOutside(panelRef, isOpen, () => setIsOpen(false))
 
   const grouped = LICENSE_LEGEND.reduce<Record<string, LicenseInfo[]>>(
     (acc, license) => {

@@ -5,7 +5,8 @@ import { formatNumber, formatRelativeTime } from '../lib/utils'
 import { evaluateDeveloperFilter } from '../lib/developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import { usePersonalization } from '../hooks/usePersonalization'
-import { useState, useRef, useEffect } from 'react'
+import { useClickOutside } from '../hooks/useClickOutside'
+import { useState, useRef } from 'react'
 
 interface RepoCardProps {
   repo: RepositoryWithIntelligence
@@ -20,17 +21,7 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
   const dropdownRef = useRef<HTMLDivElement>(null)
   const isInAnyCollection = prefs.collections.some((c) => c.repoFullNames.includes(repo.fullName))
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowCollectionDropdown(false)
-      }
-    }
-    if (showCollectionDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showCollectionDropdown])
+  useClickOutside(dropdownRef, showCollectionDropdown, () => setShowCollectionDropdown(false))
 
   const developerBadges = activeDeveloperFilters
     .map((filter) => evaluateDeveloperFilter(filter, repo))
