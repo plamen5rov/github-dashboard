@@ -105,7 +105,6 @@ All data stored in `localStorage` — no backend required.
 | **Styling**       | Tailwind CSS 3                                          |
 | **Data Fetching** | TanStack Query 5 with infinite scroll                   |
 | **Routing**       | React Router 7                                          |
-| **Virtualization**| TanStack Virtual 3                                      |
 | **Dates**         | date-fns 4                                              |
 | **Testing**       | Vitest 4 + React Testing Library + MSW 2                |
 | **Linting**       | ESLint 10 with typescript-eslint                        |
@@ -139,6 +138,7 @@ src/
 │   ├── utils.ts                   # Formatting helpers
 │   ├── constants.ts               # Options, licenses, dev filters
 │   ├── developerFilters.ts        # Client-side filter evaluation
+│   ├── licenseLegend.ts           # Open source license guide
 │   ├── readmeLanguage.ts          # English README detection
 │   └── userPreferences.ts         # localStorage CRUD
 ├── pages/
@@ -209,7 +209,7 @@ The app uses both **REST** (search) and **GraphQL** (enrichment) APIs. Most feat
 
 ### How to get one
 
-1. Go to **GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens**
+1. Go to **GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)** (or Fine-grained tokens)
 2. Give it a name, set expiration, and select **"Only select repositories"** (or no repo access — the token only reads public data)
 3. No scopes needed for public data; add `Metadata: Read` if prompted
 4. Copy the token and paste it in the app's **Settings** page (`/settings`)
