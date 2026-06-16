@@ -34,73 +34,57 @@ export function usePersonalization() {
   const refresh = useCallback(() => setPrefs(loadPreferences()), [])
 
   const toggleBookmark = useCallback((fullName: string, note?: string) => {
-    const updated = toggleBookmarkFn(fullName, note)
-    setPrefs(updated)
-    return updated
+    return toggleBookmarkFn(fullName, note)
   }, [])
 
   const isBookmarked = useCallback((fullName: string) => isBookmarkedFn(fullName), [])
 
   const addCollection = useCallback((name: string, description?: string) => {
-    const collection = addCollectionFn(name, description)
-    setPrefs(loadPreferences())
-    return collection
+    return addCollectionFn(name, description)
   }, [])
 
   const deleteCollection = useCallback((id: string) => {
     deleteCollectionFn(id)
-    setPrefs(loadPreferences())
   }, [])
 
   const addToCollection = useCallback((collectionId: string, repoFullName: string) => {
     addToCollectionFn(collectionId, repoFullName)
-    setPrefs(loadPreferences())
   }, [])
 
   const removeFromCollection = useCallback((collectionId: string, repoFullName: string) => {
     removeFromCollectionFn(collectionId, repoFullName)
-    setPrefs(loadPreferences())
   }, [])
 
   const addWatchlist = useCallback((name: string, topics: string[] = [], languages: string[] = [], minStars = 0, maxStars = 100000) => {
-    const watchlist = addWatchlistFn(name, topics, languages, minStars, maxStars)
-    setPrefs(loadPreferences())
-    return watchlist
+    return addWatchlistFn(name, topics, languages, minStars, maxStars)
   }, [])
 
   const deleteWatchlist = useCallback((id: string) => {
     deleteWatchlistFn(id)
-    setPrefs(loadPreferences())
   }, [])
 
   const followTopic = useCallback((topic: string) => {
     followTopicFn(topic)
-    setPrefs(loadPreferences())
   }, [])
 
   const unfollowTopic = useCallback((topic: string) => {
     unfollowTopicFn(topic)
-    setPrefs(loadPreferences())
   }, [])
 
   const ignoreTopic = useCallback((topic: string) => {
     ignoreTopicFn(topic)
-    setPrefs(loadPreferences())
   }, [])
 
   const unignoreTopic = useCallback((topic: string) => {
     unignoreTopicFn(topic)
-    setPrefs(loadPreferences())
   }, [])
 
   const ignoreLanguage = useCallback((language: string) => {
     ignoreLanguageFn(language)
-    setPrefs(loadPreferences())
   }, [])
 
   const unignoreLanguage = useCallback((language: string) => {
     unignoreLanguageFn(language)
-    setPrefs(loadPreferences())
   }, [])
 
   return {

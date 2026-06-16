@@ -38,7 +38,7 @@
 - **Fix:** Extract `enrichWithReadmeLanguage(repos, token)` as a standalone function; flatten nesting with early returns
 - **Files:** `src/lib/github.ts`
 
-### B2. Simplify `usePersonalization` hook
+### B2. Simplify `usePersonalization` hook ✅
 - **Problem:** Wrapper calls `loadPreferences()` redundantly after every mutation, despite `preferences-changed` event listener already triggering re-sync
 - **Fix:** Remove explicit `setPrefs(loadPreferences())` calls; rely on event listener alone
 - **Files:** `src/hooks/usePersonalization.ts`
