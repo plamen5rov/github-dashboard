@@ -185,8 +185,8 @@ async function enrichWithDeveloperData(
       return `
         repo_${i}: repository(owner: "${owner}", name: "${name}") {
           pullRequests(states: OPEN) { totalCount }
-          issues(states: OPEN) { totalCount }
-          issues(labels: ["good first issue"], states: OPEN) { totalCount }
+          allIssues: issues(states: OPEN) { totalCount }
+          goodFirstIssues: issues(labels: ["good first issue"], states: OPEN) { totalCount }
           primaryLanguage { name color }
           mentionableUsers { totalCount }
           defaultBranchRef {
@@ -229,13 +229,13 @@ async function enrichWithDeveloperData(
     if (repo) {
       result.set(fullName, {
         openPRs: repo.pullRequests?.totalCount || 0,
-        openIssues: repo.issues?.totalCount || 0,
+        openIssues: repo.allIssues?.totalCount || 0,
         languageColor: repo.primaryLanguage?.color || null,
-        goodFirstIssueCount: repo.issues?.totalCount || 0,
+        goodFirstIssueCount: repo.goodFirstIssues?.totalCount || 0,
         contributorCount: repo.mentionableUsers?.totalCount || 0,
         recentCommitCount: repo.defaultBranchRef?.target?.history?.totalCount || 0,
         releaseCount: repo.releases?.totalCount || 0,
-        hasReadme: true,
+        hasReadme: false,
         hasTests: false,
         dependencyCount: 0,
       })
@@ -340,7 +340,7 @@ export async function fetchReposWithIntelligence(
   sort: SortField,
   order: SortOrder,
   page: number = 1,
-): Promise<{ repos: Repository[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number }> {
+): Promise<{ repos: Repository[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number; serverReposCount: number }> {
   const prefs = loadPreferences()
 
   const queryOptions = { ...options }
@@ -355,6 +355,7 @@ export async function fetchReposWithIntelligence(
   }
 
   const { repos, totalCount: apiTotalCount, rateLimit } = await searchRepositories(queryOptions, sort, order, page)
+  const serverReposCount = repos.length
 
   const filteredRepos = repos.filter((repo) => {
     if (prefs.ignoredTopics && prefs.ignoredTopics.length > 0) {
@@ -443,29 +444,10 @@ export async function fetchReposWithIntelligence(
       }
     }
 
-    return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
+    return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length, serverReposCount }
   }
 
-  let fallbackRepos: Repository[] = filteredRepos
+  const fallbackRepos: Repository[] = filteredRepos
 
-  if (options.readmeLanguage === 'english') {
-    const token = getToken()
-    if (token && filteredRepos.length > 0) {
-      const fullNames = filteredRepos.map((r) => r.fullName)
-      try {
-        const readmeTexts = await enrichWithReadmeText(fullNames)
-        fallbackRepos = filteredRepos.filter((repo) => {
-          const text = readmeTexts.get(repo.fullName)
-          if (!text) return false
-          return detectReadmeLanguage(text) === 'english'
-        })
-      } catch {
-        // README language detection failed, continue without filtering
-      }
-    } else {
-      fallbackRepos = []
-    }
-  }
-
-  return { repos: fallbackRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length }
+  return { repos: fallbackRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length, serverReposCount }
 }

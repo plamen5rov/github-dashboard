@@ -4,6 +4,10 @@
 - [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
 
 ## Fixes
+- [2026-07-24] Fixed GraphQL duplicate `issues` field without alias in `enrichWithDeveloperData` — added `allIssues` and `goodFirstIssues` aliases so open issue counts and good first issue counts read distinct fields; was causing both to always be identical (files: src/lib/github.ts)
+- [2026-07-24] Fixed infinite scroll premature termination — `getNextPageParam` now uses `serverReposCount` (pre-client-side-filter count) instead of `rawCount` to stop only when the API truly has no more results (files: src/hooks/useRepos.ts, src/lib/github.ts)
+- [2026-07-24] Removed dead unreachable README language fallback code in `fetchReposWithIntelligence` — the fallback was only reached when `!token || filteredRepos.length === 0` but then checked `if (token && ...)` which was always false (files: src/lib/github.ts)
+- [2026-07-24] Fixed `hasReadme` and `hasTests` always hardcoded — set both to `false` instead of `hasReadme: true` which was misleading since neither was ever computed from actual repo data (files: src/lib/github.ts)
 - [2026-06-16] Fixed placeholder `<repo-url>` in README clone command (files: README.md)
 - [2026-06-16] Fixed README issues: removed unused TanStack Virtual from tech stack and deps, added missing licenseLegend.ts to project structure, corrected PAT token type instructions (files: README.md, package.json, package-lock.json)
 - [2026-06-16] Fixed mutation bug in fetchReposWithIntelligence causing -language clauses to double on TanStack Query retry — spread-copied options into queryOptions to avoid in-place mutation (files: src/lib/github.ts)

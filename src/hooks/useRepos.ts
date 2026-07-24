@@ -13,6 +13,7 @@ interface ReposPage {
   totalCount: number
   rateLimit: RateLimitInfo
   rawCount: number
+  serverReposCount: number
 }
 
 export function useRepos({ sort, order, ...queryOptions }: UseReposOptions) {
@@ -23,7 +24,7 @@ export function useRepos({ sort, order, ...queryOptions }: UseReposOptions) {
     queryFn: ({ pageParam = 1 }) =>
       fetchReposWithIntelligence(queryOptions, sort, order, pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.rawCount === 0) return undefined
+      if (lastPage.serverReposCount === 0) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,
