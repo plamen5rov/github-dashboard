@@ -82,6 +82,7 @@ export interface GraphQLRepositoryEnrichment {
   hasReadme: boolean
   hasTests: boolean
   dependencyCount: number
+  readmeText?: string
 }
 
 export interface Bookmark {

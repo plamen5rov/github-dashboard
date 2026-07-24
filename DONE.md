@@ -24,7 +24,8 @@
 - [2026-07-24] Added scroll lock to `Panel` component — sets `document.body.style.overflow = 'hidden'` when modal is open, restores on close/unmount (files: src/components/Panel.tsx)
 
 ## Performance
-- [2026-07-24] Added route-based code splitting: `React.lazy` + `Suspense` for Home/Settings routes with `LoadingFallback` spinner (files: src/main.tsx)
+- [2026-07-24] Merged README GraphQL query into main enrichment queries — eliminated the separate `enrichWithReadmeText` call by adding `readme: object(expression: "HEAD:README.md")` fields to both `enrichWithGraphQL` and `enrichWithDeveloperData`, reducing GraphQL API calls from 2→1 per page when README filter is active (files: src/lib/github.ts, src/types/github.ts)
+- [2026-07-24] Deleted now-unused `enrichWithReadmeText` function (files: src/lib/github.ts)
 - [2026-07-24] Added Vite `manualChunks` config: split vendor-react, vendor-router, vendor-query, vendor-date into separate cache-friendly chunks (files: vite.config.ts)
 - [2026-07-24] Added `<link rel="preconnect">` for `api.github.com` and `avatars.githubusercontent.com` to eliminate DNS+TLS on first request (files: index.html)
 - [2026-07-24] Wrapped `RepoCard` in `React.memo`; changed `isBookmarked` to use in-memory `prefs.bookmarks` instead of localStorage read per card; memoized `developerBadges` with `useMemo` (files: src/components/RepoCard.tsx)

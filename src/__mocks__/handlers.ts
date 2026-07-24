@@ -93,6 +93,10 @@ export const handlers = [
             isArchived: false,
             stargazerCount: 1500,
             forkCount: 150,
+            readme: {
+              isTruncated: false,
+              text: '# Test Repository\nThis is a test project.\n\n## Installation\nnpm install test',
+            },
           },
         },
       })

@@ -125,7 +125,7 @@ async function searchRepositories(
 
 async function enrichWithGraphQL(
   repoNames: string[],
-): Promise<Map<string, { openPRs: number; openIssues: number; languageColor: string | null }>> {
+): Promise<Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>> {
   if (repoNames.length === 0) return new Map()
 
   const token = getToken()
@@ -141,6 +141,12 @@ async function enrichWithGraphQL(
           pullRequests(states: OPEN) { totalCount }
           issues(states: OPEN) { totalCount }
           primaryLanguage { name color }
+          readme: object(expression: "HEAD:README.md") {
+            ... on Blob {
+              isTruncated
+              text
+            }
+          }
         }
       `
     })
@@ -157,16 +163,20 @@ async function enrichWithGraphQL(
   await checkResponse(response)
 
   const data = await response.json()
-  const result = new Map<string, { openPRs: number; openIssues: number; languageColor: string | null }>()
+  const result = new Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>()
 
   repoNames.forEach((fullName, i) => {
     const repo = data.data?.[`repo_${i}`]
     if (repo) {
-      result.set(fullName, {
+      const entry: { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string } = {
         openPRs: repo.pullRequests?.totalCount || 0,
         openIssues: repo.issues?.totalCount || 0,
         languageColor: repo.primaryLanguage?.color || null,
-      })
+      }
+      if (repo.readme?.text) {
+        entry.readmeText = repo.readme.text
+      }
+      result.set(fullName, entry)
     }
   })
 
@@ -208,6 +218,12 @@ async function enrichWithDeveloperData(
           isArchived
           stargazerCount
           forkCount
+          readme: object(expression: "HEAD:README.md") {
+            ... on Blob {
+              isTruncated
+              text
+            }
+          }
         }
       `
     })
@@ -239,58 +255,11 @@ async function enrichWithDeveloperData(
         contributorCount: repo.mentionableUsers?.totalCount || 0,
         recentCommitCount: repo.defaultBranchRef?.target?.history?.totalCount || 0,
         releaseCount: repo.releases?.totalCount || 0,
-        hasReadme: false,
+        hasReadme: repo.readme?.text ? true : false,
         hasTests: false,
         dependencyCount: 0,
+        readmeText: repo.readme?.text || undefined,
       })
-    }
-  })
-
-  return result
-}
-
-async function enrichWithReadmeText(
-  repoNames: string[],
-): Promise<Map<string, string>> {
-  if (repoNames.length === 0) return new Map()
-
-  const token = getToken()
-  if (!token) return new Map()
-
-  const repoQueries = repoNames
-    .map((fullName, i) => {
-      const [owner, name] = fullName.split('/')
-      return `
-        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
-          readme: object(expression: "HEAD:README.md") {
-            ... on Blob {
-              isTruncated
-              text
-            }
-          }
-        }
-      `
-    })
-    .join('\n')
-
-  const query = `query { ${repoQueries} }`
-
-  const response = await fetch(GITHUB_GRAPHQL_URL, {
-    method: 'POST',
-    headers: getHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ query }),
-  })
-
-  if (!response.ok) return new Map()
-
-  const data = await response.json()
-  const result = new Map<string, string>()
-
-  repoNames.forEach((fullName, i) => {
-    const repo = data.data?.[`repo_${i}`]
-    const readme = repo?.readme
-    if (readme?.text) {
-      result.set(fullName, readme.text)
     }
   })
 
@@ -385,6 +354,7 @@ export async function fetchReposWithIntelligence(
     let finalRepos: Repository[] = filteredRepos
     let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
     const hasDevFilters = options.developerFilters && options.developerFilters.length > 0
+    let graphqlEnrichmentMap = new Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>()
 
     if (hasDevFilters) {
       try {
@@ -421,9 +391,9 @@ export async function fetchReposWithIntelligence(
       })
     } else {
       try {
-        const enriched = await enrichWithGraphQL(fullNames)
+        graphqlEnrichmentMap = await enrichWithGraphQL(fullNames)
         filteredRepos.forEach((repo) => {
-          const extra = enriched.get(repo.fullName)
+          const extra = graphqlEnrichmentMap.get(repo.fullName)
           if (extra) {
             repo.openPRs = extra.openPRs
             repo.languageColor = extra.languageColor
@@ -435,17 +405,16 @@ export async function fetchReposWithIntelligence(
     }
 
     if (options.readmeLanguage === 'english') {
-      const fullNames = finalRepos.map((r) => r.fullName)
-      try {
-        const readmeTexts = await enrichWithReadmeText(fullNames)
-        finalRepos = finalRepos.filter((repo) => {
-          const text = readmeTexts.get(repo.fullName)
-          if (!text) return false
-          return detectReadmeLanguage(text) === 'english'
-        })
-      } catch {
-        // README language detection failed, continue without filtering
-      }
+      finalRepos = finalRepos.filter((repo) => {
+        if (hasDevFilters) {
+          const enrichment = developerEnrichmentMap.get(repo.fullName)
+          if (!enrichment?.readmeText) return false
+          return detectReadmeLanguage(enrichment.readmeText) === 'english'
+        }
+        const extra = graphqlEnrichmentMap.get(repo.fullName)
+        if (!extra?.readmeText) return false
+        return detectReadmeLanguage(extra.readmeText) === 'english'
+      })
     }
 
     return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length, serverReposCount }
