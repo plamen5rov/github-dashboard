@@ -6,7 +6,7 @@ import { evaluateDeveloperFilter } from '../lib/developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import { usePersonalization } from '../hooks/usePersonalization'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, memo } from 'react'
 import { StarIcon, ForkIcon, BookmarkIcon, FolderIcon, CheckmarkIcon, PullRequestIcon, IssueIcon } from './Icons'
 
 interface RepoCardProps {
@@ -15,18 +15,21 @@ interface RepoCardProps {
   activeDeveloperFilters?: DeveloperFilter[]
 }
 
-function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardProps) {
-  const { toggleBookmark, isBookmarked, prefs, addToCollection } = usePersonalization()
-  const bookmarked = isBookmarked(repo.fullName)
+const RepoCard = memo(function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardProps) {
+  const { toggleBookmark, prefs, addToCollection } = usePersonalization()
+  const bookmarked = prefs.bookmarks.some((b) => b.fullName === repo.fullName)
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const isInAnyCollection = prefs.collections.some((c) => c.repoFullNames.includes(repo.fullName))
 
   useClickOutside(dropdownRef, showCollectionDropdown, () => setShowCollectionDropdown(false))
 
-  const developerBadges = activeDeveloperFilters
-    .map((filter) => evaluateDeveloperFilter(filter, repo))
-    .filter((result) => result.badge)
+  const developerBadges = useMemo(
+    () => activeDeveloperFilters
+      .map((filter) => evaluateDeveloperFilter(filter, repo))
+      .filter((result) => result.badge),
+    [activeDeveloperFilters, repo],
+  )
 
   return (
     <article className="flex flex-col p-5 bg-github-darker border border-github-border rounded-xl hover:border-github-accent/50 transition-colors">
@@ -180,6 +183,6 @@ function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardP
       )}
     </article>
   )
-}
+})
 
 export default RepoCard

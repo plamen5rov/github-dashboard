@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { fetchReposWithIntelligence } from '../lib/github'
 import type { Repository, RateLimitInfo } from '../types/github'
 import type { BuildQueryOptions, SortField, SortOrder } from '../lib/utils'
@@ -30,7 +31,10 @@ export function useRepos({ sort, order, ...queryOptions }: UseReposOptions) {
     initialPageParam: 1,
   })
 
-  const allRepos = result.data?.pages.flatMap((page) => page.repos) || []
+  const allRepos = useMemo(
+    () => result.data?.pages.flatMap((page) => page.repos) || [],
+    [result.data],
+  )
   const totalCount = result.data?.pages[0]?.totalCount || 0
   const rateLimit = result.data?.pages[0]?.rateLimit
 

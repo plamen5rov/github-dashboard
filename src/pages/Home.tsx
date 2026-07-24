@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useFilters } from '../hooks/useFilters'
@@ -63,11 +63,11 @@ function Home() {
 
   const displayRateLimit = coreRateLimit || rateLimit
 
-  const handleTopicClick = (topic: string) => {
+  const handleTopicClick = useCallback((topic: string) => {
     if (!filters.topics.includes(topic)) {
       updateFilters({ topics: [...filters.topics, topic] })
     }
-  }
+  }, [filters.topics, updateFilters])
 
   const isRateLimitError =
     error && 'status' in error && (error as { status: number }).status === 403

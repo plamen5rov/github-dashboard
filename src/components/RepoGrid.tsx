@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, memo } from 'react'
 import type { Repository } from '../types/github'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import RepoCard from './RepoCard'
@@ -13,7 +13,7 @@ interface RepoGridProps {
   activeDeveloperFilters?: DeveloperFilter[]
 }
 
-function RepoGrid({
+const RepoGrid = memo(function RepoGrid({
   repos,
   hasNextPage,
   isFetchingNextPage,
@@ -23,12 +23,14 @@ function RepoGrid({
   activeDeveloperFilters = [],
 }: RepoGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const fetchNextPageRef = useRef(fetchNextPage)
+  fetchNextPageRef.current = fetchNextPage
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage()
+          fetchNextPageRef.current()
         }
       },
       { rootMargin: '200px' },
@@ -37,7 +39,7 @@ function RepoGrid({
     const el = sentinelRef.current
     if (el) observer.observe(el)
     return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [hasNextPage, isFetchingNextPage])
 
   if (isLoading) {
     return (
@@ -89,7 +91,7 @@ function RepoGrid({
       )}
     </>
   )
-}
+})
 
 function SkeletonCard() {
   return (

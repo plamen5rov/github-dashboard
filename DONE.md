@@ -14,6 +14,16 @@
 - [2026-06-16] Removed dead code in FilterSidebar: unused showLanguagePicker state, click-outside useEffect, langPickerRef, and unused imports (files: src/components/FilterSidebar.tsx)
 - [2026-06-16] Added missing rawCount to fetchReposWithIntelligence return type annotation (files: src/lib/github.ts)
 
+## Performance
+- [2026-07-24] Added route-based code splitting: `React.lazy` + `Suspense` for Home/Settings routes with `LoadingFallback` spinner (files: src/main.tsx)
+- [2026-07-24] Added Vite `manualChunks` config: split vendor-react, vendor-router, vendor-query, vendor-date into separate cache-friendly chunks (files: vite.config.ts)
+- [2026-07-24] Added `<link rel="preconnect">` for `api.github.com` and `avatars.githubusercontent.com` to eliminate DNS+TLS on first request (files: index.html)
+- [2026-07-24] Wrapped `RepoCard` in `React.memo`; changed `isBookmarked` to use in-memory `prefs.bookmarks` instead of localStorage read per card; memoized `developerBadges` with `useMemo` (files: src/components/RepoCard.tsx)
+- [2026-07-24] Wrapped `RepoGrid` in `React.memo`; fixed IntersectionObserver recreating on every render by using `fetchNextPageRef` and removing `fetchNextPage` from effect deps (files: src/components/RepoGrid.tsx)
+- [2026-07-24] Wrapped `handleTopicClick` in `useCallback` to provide stable prop reference to memoized RepoCard (files: src/pages/Home.tsx)
+- [2026-07-24] Memoized `allRepos` flatMap with `useMemo` to avoid new array reference on every render (files: src/hooks/useRepos.ts)
+- [2026-07-24] Memoized `grouped` license reduction with `useMemo` — static 15-entry array was being reduced on every FilterSidebar render (files: src/components/LicenseLegend.tsx)
+
 ## Phase 12: GitHub User Personalization
 - [2026-05-08] Added personalization types: Bookmark, Collection, Watchlist, TrendAlert, UserPreferences
 - [2026-05-08] Created userPreferences.ts for localStorage persistence with full CRUD API

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { LICENSE_LEGEND, CATEGORY_LABELS, CATEGORY_COLORS } from '../lib/licenseLegend'
 import type { LicenseInfo } from '../lib/licenseLegend'
 import { useClickOutside } from '../hooks/useClickOutside'
@@ -9,7 +9,7 @@ function LicenseLegend() {
 
   useClickOutside(panelRef, isOpen, () => setIsOpen(false))
 
-  const grouped = LICENSE_LEGEND.reduce<Record<string, LicenseInfo[]>>(
+  const grouped = useMemo(() => LICENSE_LEGEND.reduce<Record<string, LicenseInfo[]>>(
     (acc, license) => {
       const cat = license.category
       if (!acc[cat]) acc[cat] = []
@@ -17,7 +17,7 @@ function LicenseLegend() {
       return acc
     },
     {},
-  )
+  ), [])
 
   return (
     <div ref={panelRef} className="relative">

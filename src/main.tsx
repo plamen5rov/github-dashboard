@@ -1,10 +1,11 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
-import Home from './pages/Home'
-import Settings from './pages/Settings'
+
+const Home = lazy(() => import('./pages/Home'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,14 +17,27 @@ const queryClient = new QueryClient({
   },
 })
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-github-dark">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-2 border-github-accent border-t-transparent rounded-full animate-spin" />
+        <p className="text-github-muted text-sm">Loading...</p>
+      </div>
+    </div>
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
