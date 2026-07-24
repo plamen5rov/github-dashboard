@@ -45,20 +45,23 @@ const COMMON_ENGLISH_WORDS = new Set([
 ])
 
 export function detectReadmeLanguage(text: string): 'english' | 'other' {
-  const cleaned = text
+  const withoutCodeAndMarkdown = text
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`[^`]+`/g, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/[#*_~\[\]()>|\\]/g, ' ')
+
+  const meaningfulChars = withoutCodeAndMarkdown.replace(/\s/g, '').length
+  const asciiLetters = (withoutCodeAndMarkdown.match(/[a-zA-Z]/g) ?? []).length
+  const alphaRatio = meaningfulChars > 0 ? asciiLetters / meaningfulChars : 0
+
+  const cleaned = withoutCodeAndMarkdown
     .replace(/[^a-zA-Z\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase()
 
   const words = cleaned.split(/\s+/).filter((w) => w.length > 1)
-  const nonAlphabetic = cleaned.replace(/[a-z\s]/g, '').length
-  const totalChars = cleaned.length || 1
-  const alphaRatio = 1 - nonAlphabetic / totalChars
 
   if (words.length === 0) return 'other'
 

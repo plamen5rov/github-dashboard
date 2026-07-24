@@ -4,6 +4,7 @@
 - [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
 
 ## Fixes
+- [2026-07-24] Fixed English-only README filter leaking Chinese repos — `alphaRatio` was calculated after non-ASCII stripping, making it always ~1.0; now computed before stripping so Chinese/Japanese/Cyrillic characters properly count against the ratio (files: src/lib/readmeLanguage.ts)
 - [2026-07-24] Fixed `DEFAULT_PREFERENCES` shallow-copy mutation bug in `loadPreferences` — shared array references from `{ ...DEFAULT_PREFERENCES }` were being mutated by downstream code, causing stale state on reload from empty localStorage. Now explicitly creates fresh arrays per load (files: src/lib/userPreferences.ts)
 - [2026-07-24] Fixed GraphQL duplicate `issues` field without alias in `enrichWithDeveloperData` — added `allIssues` and `goodFirstIssues` aliases so open issue counts and good first issue counts read distinct fields; was causing both to always be identical (files: src/lib/github.ts)
 - [2026-07-24] Fixed infinite scroll premature termination — `getNextPageParam` now uses `serverReposCount` (pre-client-side-filter count) instead of `rawCount` to stop only when the API truly has no more results (files: src/hooks/useRepos.ts, src/lib/github.ts)
