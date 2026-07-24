@@ -4,6 +4,7 @@
 - [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
 
 ## Fixes
+- [2026-07-24] Fixed `DEFAULT_PREFERENCES` shallow-copy mutation bug in `loadPreferences` — shared array references from `{ ...DEFAULT_PREFERENCES }` were being mutated by downstream code, causing stale state on reload from empty localStorage. Now explicitly creates fresh arrays per load (files: src/lib/userPreferences.ts)
 - [2026-07-24] Fixed GraphQL duplicate `issues` field without alias in `enrichWithDeveloperData` — added `allIssues` and `goodFirstIssues` aliases so open issue counts and good first issue counts read distinct fields; was causing both to always be identical (files: src/lib/github.ts)
 - [2026-07-24] Fixed infinite scroll premature termination — `getNextPageParam` now uses `serverReposCount` (pre-client-side-filter count) instead of `rawCount` to stop only when the API truly has no more results (files: src/hooks/useRepos.ts, src/lib/github.ts)
 - [2026-07-24] Removed dead unreachable README language fallback code in `fetchReposWithIntelligence` — the fallback was only reached when `!token || filteredRepos.length === 0` but then checked `if (token && ...)` which was always false (files: src/lib/github.ts)
@@ -33,6 +34,11 @@
 - [2026-07-24] Memoized `grouped` license reduction with `useMemo` — static 15-entry array was being reduced on every FilterSidebar render (files: src/components/LicenseLegend.tsx)
 
 ## Refactor
+- [2026-07-24] Added 6 tests for `getAPISortField` and 2 edge cases for `formatNumber` to utils.test.ts (files: src/__tests__/utils.test.ts)
+- [2026-07-24] Added 6 variant tests to RepoCard.test.tsx: null description, openPRs=0 hidden, >5 topics +N indicator, developer badge rendering (files: src/__tests__/RepoCard.test.tsx)
+- [2026-07-24] Created `userPreferences.test.ts` with 21 tests covering: load defaults, corrupted JSON recovery, bookmark add/remove, collection CRUD, topic follow/unfollow/ignore/unignore, language ignore/unignore, watchlist CRUD, preferences-changed event dispatch (files: src/__tests__/userPreferences.test.ts)
+- [2026-07-24] Expanded MSW handlers: added `/rate_limit` endpoint, single repo `GET /repos/:owner/:name`, enhanced GraphQL handler with enrichment fields (goodFirstIssues, mentionableUsers, readme text), 403 rate limit simulation (files: src/__mocks__/handlers.ts)
+- [2026-07-24] 101 tests passing (up from 69)
 - [2026-07-24] Extracted `TopicChipList` shared component — used in RepoCard (max=5), BookmarksPanel (max=4), CollectionsPanel (max=3) (files: src/components/TopicChipList.tsx, RepoCard.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx)
 - [2026-07-24] Extracted `RepoStatsRow` shared component (stars + forks + time) — used in BookmarksPanel and CollectionsPanel (files: src/components/RepoStatsRow.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx)
 - [2026-07-24] Extracted `EmptyState` shared component (icon + title + description) — used in RepoGrid, BookmarksPanel, CollectionsPanel, FollowedTopicsManager (files: src/components/EmptyState.tsx, RepoGrid.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx, FollowedTopicsManager.tsx)

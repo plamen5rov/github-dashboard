@@ -32,6 +32,18 @@ export const handlers = [
       return HttpResponse.json({ message: 'Validation Failed' }, { status: 422 })
     }
 
+    if (query.includes('403test')) {
+      return new HttpResponse(null, {
+        status: 403,
+        statusText: 'Forbidden',
+        headers: {
+          'X-RateLimit-Limit': '60',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': '1700000000',
+        },
+      })
+    }
+
     return HttpResponse.json(
       {
         total_count: 1,
@@ -48,7 +60,57 @@ export const handlers = [
     )
   }),
 
-  http.post(GITHUB_GRAPHQL_URL, () => {
+  http.get(`${GITHUB_API_BASE}/rate_limit`, () => {
+    return HttpResponse.json({
+      resources: {
+        core: { limit: 5000, remaining: 4999, reset: 1700000000 },
+        search: { limit: 30, remaining: 29, reset: 1700000000 },
+      },
+    })
+  }),
+
+  http.get(`${GITHUB_API_BASE}/repos/:owner/:name`, () => {
+    return HttpResponse.json(mockRepo)
+  }),
+
+  http.post(GITHUB_GRAPHQL_URL, async ({ request }) => {
+    const body = await request.json() as { query: string }
+    const query = body.query || ''
+
+    if (query.includes('goodFirstIssues')) {
+      return HttpResponse.json({
+        data: {
+          repo_0: {
+            pullRequests: { totalCount: 5 },
+            allIssues: { totalCount: 10 },
+            goodFirstIssues: { totalCount: 3 },
+            primaryLanguage: { name: 'TypeScript', color: '#3178c6' },
+            mentionableUsers: { totalCount: 42 },
+            defaultBranchRef: { target: { history: { totalCount: 100 } } },
+            releases: { totalCount: 5 },
+            repositoryTopics: { nodes: [{ topic: { name: 'react' } }, { topic: { name: 'typescript' } }] },
+            licenseInfo: { spdxId: 'MIT' },
+            isArchived: false,
+            stargazerCount: 1500,
+            forkCount: 150,
+          },
+        },
+      })
+    }
+
+    if (query.includes('readme')) {
+      return HttpResponse.json({
+        data: {
+          repo_0: {
+            readme: {
+              isTruncated: false,
+              text: '# Test Repository\nThis is a test project.\n\n## Installation\nnpm install test',
+            },
+          },
+        },
+      })
+    }
+
     return HttpResponse.json({
       data: {
         repo_0: {

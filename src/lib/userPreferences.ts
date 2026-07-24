@@ -14,11 +14,18 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 export function loadPreferences(): UserPreferences {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return { ...DEFAULT_PREFERENCES }
+    if (!stored) return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES))
     const parsed = JSON.parse(stored)
-    return { ...DEFAULT_PREFERENCES, ...parsed }
+    return {
+      followedTopics: parsed.followedTopics ?? [],
+      ignoredTopics: parsed.ignoredTopics ?? [],
+      ignoredLanguages: parsed.ignoredLanguages ?? [],
+      bookmarks: parsed.bookmarks ?? [],
+      collections: parsed.collections ?? [],
+      watchlists: parsed.watchlists ?? [],
+    }
   } catch {
-    return { ...DEFAULT_PREFERENCES }
+    return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES))
   }
 }
 

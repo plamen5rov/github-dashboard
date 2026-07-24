@@ -1,11 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { formatNumber, formatRelativeTime, getDateForTimeRange, buildGitHubQuery, isOSILicense } from '../lib/utils'
+import { formatNumber, formatRelativeTime, getDateForTimeRange, buildGitHubQuery, isOSILicense, getAPISortField } from '../lib/utils'
 import { detectReadmeLanguage } from '../lib/readmeLanguage'
 
 describe('formatNumber', () => {
   it('formats numbers under 1000 as-is', () => {
     expect(formatNumber(500)).toBe('500')
     expect(formatNumber(99)).toBe('99')
+    expect(formatNumber(0)).toBe('0')
+    expect(formatNumber(999)).toBe('999')
   })
 
   it('formats thousands with k suffix', () => {
@@ -163,6 +165,32 @@ describe('isOSILicense', () => {
 
   it('returns false for Other', () => {
     expect(isOSILicense('Other')).toBe(false)
+  })
+})
+
+describe('getAPISortField', () => {
+  it('returns stars for stars', () => {
+    expect(getAPISortField('stars')).toBe('stars')
+  })
+
+  it('returns forks for forks', () => {
+    expect(getAPISortField('forks')).toBe('forks')
+  })
+
+  it('returns updated for updated', () => {
+    expect(getAPISortField('updated')).toBe('updated')
+  })
+
+  it('returns undefined for pull_requests', () => {
+    expect(getAPISortField('pull_requests')).toBeUndefined()
+  })
+
+  it('returns help-wanted-issues for issues', () => {
+    expect(getAPISortField('issues')).toBe('help-wanted-issues')
+  })
+
+  it('returns undefined for best_match', () => {
+    expect(getAPISortField('best_match')).toBeUndefined()
   })
 })
 

@@ -83,4 +83,38 @@ describe('RepoCard', () => {
     render(<RepoCard repo={repoWithoutLicense} onTopicClick={vi.fn()} />)
     expect(screen.getByText('No License')).toBeInTheDocument()
   })
+
+  it('does not render description when null', () => {
+    const repo = { ...mockRepo, description: null }
+    render(<RepoCard repo={repo} onTopicClick={vi.fn()} />)
+    expect(screen.queryByText('A test repository for demonstration')).not.toBeInTheDocument()
+  })
+
+  it('renders open PR count when > 0', () => {
+    render(<RepoCard repo={mockRepo} onTopicClick={vi.fn()} />)
+    expect(screen.getByText('5')).toBeInTheDocument()
+  })
+
+  it('does not render open PR count when 0', () => {
+    const repo = { ...mockRepo, openPRs: 0 }
+    render(<RepoCard repo={repo} onTopicClick={vi.fn()} />)
+    expect(screen.queryByText(/open PRs/)).not.toBeInTheDocument()
+  })
+
+  it('renders +N indicator when topics exceed 5', () => {
+    const repo = { ...mockRepo, topics: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] }
+    render(<RepoCard repo={repo} onTopicClick={vi.fn()} />)
+    expect(screen.getByText('+2')).toBeInTheDocument()
+  })
+
+  it('renders developer badges when active filters passed', () => {
+    render(
+      <RepoCard
+        repo={mockRepo}
+        onTopicClick={vi.fn()}
+        activeDeveloperFilters={['beginner_friendly']}
+      />,
+    )
+    expect(screen.getByText('Beginner-friendly')).toBeInTheDocument()
+  })
 })
