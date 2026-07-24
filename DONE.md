@@ -1,5 +1,8 @@
 # DONE.md — Changelog
 
+## Miscellaneous
+- [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
+
 ## Fixes
 - [2026-06-16] Fixed placeholder `<repo-url>` in README clone command (files: README.md)
 - [2026-06-16] Fixed README issues: removed unused TanStack Virtual from tech stack and deps, added missing licenseLegend.ts to project structure, corrected PAT token type instructions (files: README.md, package.json, package-lock.json)
