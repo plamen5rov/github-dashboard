@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { usePersonalization } from '../hooks/usePersonalization'
 import { getToken, fetchRepoByFullName } from '../lib/github'
 import type { Repository } from '../types/github'
-import { formatRelativeTime, formatNumber } from '../lib/utils'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
 import Panel from './Panel'
-import { StarIcon, ForkIcon, ChevronUpIcon, TrashIcon, CloseIcon } from './Icons'
+import RepoStatsRow from './RepoStatsRow'
+import TopicChipList from './TopicChipList'
+import EmptyState from './EmptyState'
+import { ChevronUpIcon, TrashIcon, CloseIcon, CollectionIcon } from './Icons'
 
 interface CollectionsPanelProps {
   isOpen: boolean
@@ -80,13 +82,7 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
       }
     >
       {prefs.collections.length === 0 && !showCreateForm ? (
-        <div className="text-center py-12">
-          <svg className="mx-auto w-16 h-16 text-github-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <p className="text-github-muted mb-2">No collections yet</p>
-          <p className="text-xs text-github-muted">Create a collection and add repos from the folder icon on any repo card</p>
-        </div>
+        <EmptyState icon={<CollectionIcon />} title="No collections yet" description="Create a collection and add repos from the folder icon on any repo card" />
       ) : (
         <div className="space-y-3">
           {showCreateForm && (
@@ -219,39 +215,17 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
                                 </button>
                               </div>
 
-                              {repo && (
-                                <>
-                                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                    <LanguageBadge language={repo.language} color={repo.languageColor} />
-                                    <LicenseBadge spdxId={repo.license?.spdxId || null} />
-                                  </div>
-
-                                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-github-muted">
-                                    <span className="flex items-center gap-1">
-                                      <StarIcon />
-                                      {formatNumber(repo.stars)}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <ForkIcon />
-                                      {formatNumber(repo.forks)}
-                                    </span>
-                                    <span className="ml-auto">{formatRelativeTime(repo.pushedAt)}</span>
-                                  </div>
-
-                                  {repo.topics.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-github-border/50">
-                                      {repo.topics.slice(0, 3).map((topic) => (
-                                        <button
-                                          key={topic}
-                                          onClick={() => onTopicClick(topic)}
-                                          className="px-1.5 py-0.5 bg-github-accent/10 text-github-accent rounded-full text-xs hover:bg-github-accent/20"
-                                        >
-                                          {topic}
-                                        </button>
-                                      ))}
+                                {repo && (
+                                  <>
+                                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                      <LanguageBadge language={repo.language} color={repo.languageColor} />
+                                      <LicenseBadge spdxId={repo.license?.spdxId || null} />
                                     </div>
-                                  )}
-                                </>
+
+                                    <RepoStatsRow stars={repo.stars} forks={repo.forks} pushedAt={repo.pushedAt} compact />
+
+                                    <TopicChipList topics={repo.topics} max={3} onTopicClick={onTopicClick} />
+                                  </>
                               )}
                             </div>
                           )

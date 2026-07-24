@@ -8,6 +8,7 @@ import { usePersonalization } from '../hooks/usePersonalization'
 import { useClickOutside } from '../hooks/useClickOutside'
 import { useState, useRef, useMemo, memo } from 'react'
 import { StarIcon, ForkIcon, BookmarkIcon, FolderIcon, CheckmarkIcon, PullRequestIcon, IssueIcon } from './Icons'
+import TopicChipList from './TopicChipList'
 
 interface RepoCardProps {
   repo: Repository
@@ -164,21 +165,8 @@ const RepoCard = memo(function RepoCard({ repo, onTopicClick, activeDeveloperFil
       </div>
 
       {repo.topics.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-auto pt-3 border-t border-github-border">
-          {repo.topics.slice(0, 5).map((topic) => (
-            <button
-              key={topic}
-              onClick={() => onTopicClick(topic)}
-              className="px-2 py-0.5 bg-github-accent/10 text-github-accent rounded-full text-xs hover:bg-github-accent/20 focus:outline-none focus:ring-2 focus:ring-github-accent"
-            >
-              {topic}
-            </button>
-          ))}
-          {repo.topics.length > 5 && (
-            <span className="px-2 py-0.5 text-github-muted text-xs">
-              +{repo.topics.length - 5}
-            </span>
-          )}
+        <div className="mt-auto">
+          <TopicChipList topics={repo.topics} max={5} onTopicClick={onTopicClick} />
         </div>
       )}
     </article>

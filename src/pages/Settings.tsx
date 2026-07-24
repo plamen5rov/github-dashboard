@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
-import { SunIcon, MoonIcon } from '../components/Icons'
+import { SunIcon, MoonIcon, BackArrowIcon } from '../components/Icons'
 
 function Settings() {
   const [token, setToken] = useState('')
@@ -32,9 +32,7 @@ function Settings() {
             className="p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg"
             aria-label="Back to home"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <BackArrowIcon className="w-5 h-5" />
           </Link>
           <h1 className="text-xl font-bold text-github-text">Settings</h1>
           <div className="ml-auto">

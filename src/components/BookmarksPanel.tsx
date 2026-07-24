@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import { usePersonalization } from '../hooks/usePersonalization'
 import { getToken, fetchRepoByFullName } from '../lib/github'
 import type { Repository } from '../types/github'
-import { formatRelativeTime, formatNumber } from '../lib/utils'
+import { formatRelativeTime } from '../lib/utils'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
 import Panel from './Panel'
-import { StarIcon, ForkIcon, BookmarkIcon, BookmarkOutlineIcon } from './Icons'
+import RepoStatsRow from './RepoStatsRow'
+import TopicChipList from './TopicChipList'
+import EmptyState from './EmptyState'
+import { BookmarkIcon, BookmarkOutlineIcon } from './Icons'
 
 interface BookmarksPanelProps {
   isOpen: boolean
@@ -60,11 +63,7 @@ function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) 
       }
     >
       {prefs.bookmarks.length === 0 ? (
-        <div className="text-center py-12">
-          <BookmarkOutlineIcon className="mx-auto w-16 h-16 text-github-muted mb-4" />
-          <p className="text-github-muted mb-2">No bookmarks yet</p>
-          <p className="text-xs text-github-muted">Click the bookmark icon on any repo to save it here</p>
-        </div>
+        <EmptyState icon={<BookmarkOutlineIcon />} title="No bookmarks yet" description="Click the bookmark icon on any repo to save it here" />
       ) : loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -118,31 +117,9 @@ function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) 
                       <LicenseBadge spdxId={repo.license?.spdxId || null} />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-github-muted">
-                      <span className="flex items-center gap-1">
-                        <StarIcon />
-                        {formatNumber(repo.stars)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ForkIcon />
-                        {formatNumber(repo.forks)}
-                      </span>
-                      <span className="ml-auto">{formatRelativeTime(repo.pushedAt)}</span>
-                    </div>
+                    <RepoStatsRow stars={repo.stars} forks={repo.forks} pushedAt={repo.pushedAt} compact />
 
-                    {repo.topics.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-github-border">
-                        {repo.topics.slice(0, 4).map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => onTopicClick(topic)}
-                            className="px-2 py-0.5 bg-github-accent/10 text-github-accent rounded-full text-xs hover:bg-github-accent/20"
-                          >
-                            {topic}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <TopicChipList topics={repo.topics} max={4} onTopicClick={onTopicClick} />
                   </>
                 )}
 

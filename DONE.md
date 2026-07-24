@@ -24,6 +24,13 @@
 - [2026-07-24] Memoized `allRepos` flatMap with `useMemo` to avoid new array reference on every render (files: src/hooks/useRepos.ts)
 - [2026-07-24] Memoized `grouped` license reduction with `useMemo` — static 15-entry array was being reduced on every FilterSidebar render (files: src/components/LicenseLegend.tsx)
 
+## Refactor
+- [2026-07-24] Extracted `TopicChipList` shared component — used in RepoCard (max=5), BookmarksPanel (max=4), CollectionsPanel (max=3) (files: src/components/TopicChipList.tsx, RepoCard.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx)
+- [2026-07-24] Extracted `RepoStatsRow` shared component (stars + forks + time) — used in BookmarksPanel and CollectionsPanel (files: src/components/RepoStatsRow.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx)
+- [2026-07-24] Extracted `EmptyState` shared component (icon + title + description) — used in RepoGrid, BookmarksPanel, CollectionsPanel, FollowedTopicsManager (files: src/components/EmptyState.tsx, RepoGrid.tsx, BookmarksPanel.tsx, CollectionsPanel.tsx, FollowedTopicsManager.tsx)
+- [2026-07-24] Extracted `BadgeCount` shared component — used 4x in Home.tsx header for bookmarks, collections, followed topics, ignored items counts (files: src/components/BadgeCount.tsx, Home.tsx)
+- [2026-07-24] Added 9 SVG icons to Icons.tsx: MenuIcon, GitHubIcon, TagIcon, NoEntryIcon, SettingsIcon, SadFaceIcon, SearchIcon, BackArrowIcon, CollectionIcon — replacing all inline SVGs in Home, RepoGrid, SearchInput, Settings (files: src/components/Icons.tsx, Home.tsx, RepoGrid.tsx, SearchInput.tsx, Settings.tsx)
+
 ## Phase 12: GitHub User Personalization
 - [2026-05-08] Added personalization types: Bookmark, Collection, Watchlist, TrendAlert, UserPreferences
 - [2026-05-08] Created userPreferences.ts for localStorage persistence with full CRUD API

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { usePersonalization } from '../hooks/usePersonalization'
 import Panel from './Panel'
+import EmptyState from './EmptyState'
+import { TagIcon } from './Icons'
 
 interface FollowedTopicsManagerProps {
   isOpen: boolean
@@ -41,13 +43,7 @@ function FollowedTopicsManager({ isOpen, onClose }: FollowedTopicsManagerProps) 
       </div>
 
       {prefs.followedTopics.length === 0 ? (
-        <div className="text-center py-8">
-          <svg className="mx-auto w-12 h-12 text-github-muted mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          <p className="text-github-muted">No followed topics yet</p>
-          <p className="text-xs text-github-muted mt-1">Follow topics to track them here</p>
-        </div>
+        <EmptyState icon={<TagIcon className="w-12 h-12" />} title="No followed topics yet" description="Follow topics to track them here" />
       ) : (
         <div className="flex flex-wrap gap-2">
           {prefs.followedTopics.map((topic) => (

@@ -2,6 +2,8 @@ import { useEffect, useRef, memo } from 'react'
 import type { Repository } from '../types/github'
 import type { DeveloperFilter } from '../hooks/useFilters'
 import RepoCard from './RepoCard'
+import EmptyState from './EmptyState'
+import { SadFaceIcon } from './Icons'
 
 interface RepoGridProps {
   repos: Repository[]
@@ -52,26 +54,7 @@ const RepoGrid = memo(function RepoGrid({
   }
 
   if (repos.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <svg
-          className="mx-auto w-16 h-16 text-github-muted mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <h3 className="text-lg font-semibold text-github-text mb-2">No repositories found</h3>
-        <p className="text-github-muted">Try adjusting your filters or search terms</p>
-      </div>
-    )
+    return <EmptyState icon={<SadFaceIcon />} title="No repositories found" description="Try adjusting your filters or search terms" />
   }
 
   return (
