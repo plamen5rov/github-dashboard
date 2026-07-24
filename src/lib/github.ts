@@ -14,10 +14,14 @@ import { loadPreferences } from './userPreferences'
 import { detectReadmeLanguage } from './readmeLanguage'
 
 function getToken(): string | null {
-  return localStorage.getItem('github_token') || import.meta.env.VITE_GITHUB_TOKEN || null
+  return localStorage.getItem('github_token') || null
 }
 
 export { getToken }
+
+function escapeGraphQL(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
 
 function getHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = {
@@ -133,7 +137,7 @@ async function enrichWithGraphQL(
     .map((fullName, i) => {
       const [owner, name] = fullName.split('/')
       return `
-        repo_${i}: repository(owner: "${owner}", name: "${name}") {
+        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
           pullRequests(states: OPEN) { totalCount }
           issues(states: OPEN) { totalCount }
           primaryLanguage { name color }
@@ -183,7 +187,7 @@ async function enrichWithDeveloperData(
     .map((fullName, i) => {
       const [owner, name] = fullName.split('/')
       return `
-        repo_${i}: repository(owner: "${owner}", name: "${name}") {
+        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
           pullRequests(states: OPEN) { totalCount }
           allIssues: issues(states: OPEN) { totalCount }
           goodFirstIssues: issues(labels: ["good first issue"], states: OPEN) { totalCount }
@@ -257,7 +261,7 @@ async function enrichWithReadmeText(
     .map((fullName, i) => {
       const [owner, name] = fullName.split('/')
       return `
-        repo_${i}: repository(owner: "${owner}", name: "${name}") {
+        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
           readme: object(expression: "HEAD:README.md") {
             ... on Blob {
               isTruncated

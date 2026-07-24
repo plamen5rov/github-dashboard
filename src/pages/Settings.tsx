@@ -6,11 +6,13 @@ import { SunIcon, MoonIcon, BackArrowIcon } from '../components/Icons'
 function Settings() {
   const [token, setToken] = useState('')
   const [saved, setSaved] = useState(false)
+  const [hasExistingToken, setHasExistingToken] = useState(false)
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
-    const stored = localStorage.getItem('github_token')
-    if (stored) setToken(stored)
+    if (localStorage.getItem('github_token')) {
+      setHasExistingToken(true)
+    }
   }, [])
 
   const handleSave = () => {
@@ -68,7 +70,7 @@ function Settings() {
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              placeholder={hasExistingToken ? 'Token saved — enter a new one to replace it' : 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
               className="flex-1 px-4 py-2 bg-github-dark border border-github-border rounded-lg text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent"
               aria-label="GitHub Personal Access Token"
             />

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import { CloseIcon } from './Icons'
 
 interface PanelProps {
@@ -22,6 +23,12 @@ function Panel({
   footer,
   headerExtra,
 }: PanelProps) {
+  useEffect(() => {
+    if (!isOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   return (

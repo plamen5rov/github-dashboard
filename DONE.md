@@ -14,6 +14,14 @@
 - [2026-06-16] Removed dead code in FilterSidebar: unused showLanguagePicker state, click-outside useEffect, langPickerRef, and unused imports (files: src/components/FilterSidebar.tsx)
 - [2026-06-16] Added missing rawCount to fetchReposWithIntelligence return type annotation (files: src/lib/github.ts)
 
+## Security
+- [2026-07-24] Removed `import.meta.env.VITE_GITHUB_TOKEN` fallback from `getToken()` — Vite-prefixed env vars get bundled into production JS, risking accidental token leaks (files: src/lib/github.ts)
+- [2026-07-24] Added Content-Security-Policy meta tag to `index.html` — restricts scripts/styles/connect/img sources (files: index.html)
+- [2026-07-24] Added `escapeGraphQL` function and applied to all 3 GraphQL query builders — prevents query breakage from repo names containing `"` or `\` (files: src/lib/github.ts)
+- [2026-07-24] Settings page no longer populates token input with stored PAT — previously visible in React DevTools on page load; now shows "Token saved — enter a new one to replace it" placeholder (files: src/pages/Settings.tsx)
+- [2026-07-24] Created `ErrorBoundary` component — catches render-time errors, shows reload button instead of white screen (files: src/components/ErrorBoundary.tsx, src/main.tsx)
+- [2026-07-24] Added scroll lock to `Panel` component — sets `document.body.style.overflow = 'hidden'` when modal is open, restores on close/unmount (files: src/components/Panel.tsx)
+
 ## Performance
 - [2026-07-24] Added route-based code splitting: `React.lazy` + `Suspense` for Home/Settings routes with `LoadingFallback` spinner (files: src/main.tsx)
 - [2026-07-24] Added Vite `manualChunks` config: split vendor-react, vendor-router, vendor-query, vendor-date into separate cache-friendly chunks (files: vite.config.ts)
