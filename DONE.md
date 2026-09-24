@@ -4,6 +4,10 @@
 - [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
 
 ## Fixes
+- [2026-09-24] Added 401 auth error handling — invalid/expired PAT previously showed generic "Failed to load repositories" with a Retry button that could never succeed; Home now shows "GitHub token is invalid or expired" with an Open Settings link (files: src/pages/Home.tsx)
+- [2026-09-24] Disabled TanStack Query retries on 401 in `useRepos` — bad tokens triggered 3 pointless retries per search keystroke (visible as repeated 401s in console); non-auth errors still retry up to 3 times (files: src/hooks/useRepos.ts)
+- [2026-09-24] Settings page now validates PATs against GitHub `/rate_limit` before saving — invalid tokens are rejected with a clear error message instead of silently breaking all API calls; empty input still removes the stored token (files: src/pages/Settings.tsx)
+- [2026-09-24] README: corrected stale test count (69 → 101), documented token validation on save (files: README.md)
 - [2026-07-24] Fixed English-only README filter leaking Chinese repos — `alphaRatio` was calculated after non-ASCII stripping, making it always ~1.0; now computed before stripping so Chinese/Japanese/Cyrillic characters properly count against the ratio (files: src/lib/readmeLanguage.ts)
 - [2026-07-24] Fixed `DEFAULT_PREFERENCES` shallow-copy mutation bug in `loadPreferences` — shared array references from `{ ...DEFAULT_PREFERENCES }` were being mutated by downstream code, causing stale state on reload from empty localStorage. Now explicitly creates fresh arrays per load (files: src/lib/userPreferences.ts)
 - [2026-07-24] Fixed GraphQL duplicate `issues` field without alias in `enrichWithDeveloperData` — added `allIssues` and `goodFirstIssues` aliases so open issue counts and good first issue counts read distinct fields; was causing both to always be identical (files: src/lib/github.ts)

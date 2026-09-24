@@ -215,7 +215,7 @@ The app uses both **REST** (search) and **GraphQL** (enrichment) APIs. Most feat
 1. Go to **GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)** (or Fine-grained tokens)
 2. Give it a name, set expiration, and select **"Only select repositories"** (or no repo access — the token only reads public data)
 3. No scopes needed for public data; add `Metadata: Read` if prompted
-4. Copy the token and paste it in the app's **Settings** page (`/settings`)
+4. Copy the token and paste it in the app's **Settings** page (`/settings`) — it is validated against GitHub before saving, so invalid or expired tokens are rejected immediately
 
 The token is stored in **`localStorage`** and sent **only** to GitHub API endpoints.
 
@@ -225,7 +225,7 @@ The token is stored in **`localStorage`** and sent **only** to GitHub API endpoi
 
 ## Testing
 
-69 tests covering utility functions, component rendering, filter logic,
+101 tests covering utility functions, component rendering, filter logic,
 and language detection.
 
 ```bash

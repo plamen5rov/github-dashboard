@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { GITHUB_API_BASE } from '../lib/constants'
 import { SunIcon, MoonIcon, BackArrowIcon } from '../components/Icons'
 
 function Settings() {
   const [token, setToken] = useState('')
   const [saved, setSaved] = useState(false)
+  const [tokenError, setTokenError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
   const [hasExistingToken, setHasExistingToken] = useState(false)
   const { theme, toggleTheme } = useTheme()
 
@@ -15,14 +18,44 @@ function Settings() {
     }
   }, [])
 
-  const handleSave = () => {
-    if (token.trim()) {
-      localStorage.setItem('github_token', token.trim())
-    } else {
+  const handleSave = async () => {
+    const trimmed = token.trim()
+    if (!trimmed) {
       localStorage.removeItem('github_token')
+      setHasExistingToken(false)
+      setTokenError(null)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      return
     }
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+
+    setIsValidating(true)
+    setTokenError(null)
+    try {
+      const response = await fetch(`${GITHUB_API_BASE}/rate_limit`, {
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${trimmed}`,
+        },
+      })
+      if (!response.ok) {
+        setTokenError(
+          response.status === 401
+            ? 'Invalid token — GitHub rejected it (401 Bad credentials). Check for typos or expired tokens.'
+            : `GitHub could not validate this token (HTTP ${response.status}).`,
+        )
+        return
+      }
+      localStorage.setItem('github_token', trimmed)
+      setHasExistingToken(true)
+      setToken('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setTokenError('Could not reach GitHub to validate the token. Check your connection and try again.')
+    } finally {
+      setIsValidating(false)
+    }
   }
 
   return (
@@ -76,13 +109,17 @@ function Settings() {
             />
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-github-green text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-medium"
+              disabled={isValidating}
+              className="px-6 py-2 bg-github-green text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save
+              {isValidating ? 'Validating…' : 'Save'}
             </button>
           </div>
           {saved && (
             <p className="text-sm text-green-400">Token saved successfully!</p>
+          )}
+          {tokenError && (
+            <p className="text-sm text-red-400" role="alert">{tokenError}</p>
           )}
         </section>
 

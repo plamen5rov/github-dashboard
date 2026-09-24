@@ -29,6 +29,10 @@ export function useRepos({ sort, order, ...queryOptions }: UseReposOptions) {
       return allPages.length + 1
     },
     initialPageParam: 1,
+    retry: (failureCount, error) => {
+      if ((error as { status?: number })?.status === 401) return false
+      return failureCount < 3
+    },
   })
 
   const allRepos = useMemo(

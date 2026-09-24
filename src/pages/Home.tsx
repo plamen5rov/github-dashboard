@@ -70,8 +70,9 @@ function Home() {
     }
   }, [filters.topics, updateFilters])
 
-  const isRateLimitError =
-    error && 'status' in error && (error as { status: number }).status === 403
+  const errorStatus = error && 'status' in error ? (error as { status: number }).status : null
+  const isRateLimitError = errorStatus === 403
+  const isAuthError = errorStatus === 401
 
   return (
     <div className="min-h-screen">
@@ -217,21 +218,41 @@ function Home() {
           {isError && (
             <div className="p-4 bg-red-900/20 border border-red-800 rounded-xl text-center mb-6">
               <p className="text-red-400 font-medium mb-2">
-                {isRateLimitError
-                  ? 'GitHub API rate limit exceeded'
-                  : 'Failed to load repositories'}
+                {isAuthError
+                  ? 'GitHub token is invalid or expired'
+                  : isRateLimitError
+                    ? 'GitHub API rate limit exceeded'
+                    : 'Failed to load repositories'}
               </p>
-              {isRateLimitError && rateLimit && (
-                <p className="text-sm text-github-muted mb-3">
-                  Resets at {new Date(rateLimit.reset * 1000).toLocaleTimeString()}
-                </p>
+              {isAuthError && (
+                <>
+                  <p className="text-sm text-github-muted mb-3">
+                    GitHub rejected your saved Personal Access Token (401 Bad credentials).
+                    Update or remove it in Settings.
+                  </p>
+                  <Link
+                    to="/settings"
+                    className="inline-block px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    Open Settings
+                  </Link>
+                </>
               )}
-              <button
-                onClick={() => refetch()}
-                className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                Retry
-              </button>
+              {!isAuthError && (
+                <>
+                  {isRateLimitError && rateLimit && (
+                    <p className="text-sm text-github-muted mb-3">
+                      Resets at {new Date(rateLimit.reset * 1000).toLocaleTimeString()}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => refetch()}
+                    className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    Retry
+                  </button>
+                </>
+              )}
             </div>
           )}
 
