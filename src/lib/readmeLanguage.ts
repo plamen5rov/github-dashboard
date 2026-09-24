@@ -49,7 +49,7 @@ export function detectReadmeLanguage(text: string): 'english' | 'other' {
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`[^`]+`/g, '')
     .replace(/https?:\/\/\S+/g, '')
-    .replace(/[#*_~\[\]()>|\\]/g, ' ')
+    .replace(/[#*_~[\]()>|\\]/g, ' ')
 
   const meaningfulChars = withoutCodeAndMarkdown.replace(/\s/g, '').length
   const asciiLetters = (withoutCodeAndMarkdown.match(/[a-zA-Z]/g) ?? []).length

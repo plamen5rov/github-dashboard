@@ -4,6 +4,11 @@
 - [2026-07-24] Added `graphify-out/` to `.gitignore` for knowledge graph output directory
 
 ## Fixes
+- [2026-09-24] URL param validation — invalid `timeRange`/`licenseType`/`sort`/`order`/`minStars`/`readmeLanguage`/`developerFilters` values now fall back to defaults instead of leaking into API queries; list params are trimmed/deduped/sorted for stable cache keys; `resetFilters` preserves sort/order (files: src/hooks/useFilters.ts, src/hooks/useSort.ts)
+- [2026-09-24] CollectionsPanel: delete button was nested inside the expand toggle button (invalid interactive nesting) — restructured header into sibling controls (files: src/components/CollectionsPanel.tsx)
+- [2026-09-24] Panel a11y — modal now has `role=dialog`/`aria-modal`/`aria-labelledby`, closes on Escape, and moves focus into the dialog on open (files: src/components/Panel.tsx)
+- [2026-09-24] Settings rewritten to use `authStore` + `validateToken` instead of inline fetch and raw localStorage; `hasExistingToken` derived from the store (mount effect removed) (files: src/pages/Settings.tsx)
+- [2026-09-24] Fixed all 17 pre-existing/new ESLint errors (refs-during-render, setState-in-effect, react-refresh boundaries, useless regex escape) — lint now exits 0 (files: src/hooks/useClickOutside.ts, src/components/Panel.tsx, src/components/RepoGrid.tsx, src/components/MinStarsInput.tsx, src/components/SearchInput.tsx, src/lib/readmeLanguage.ts, src/lib/languageColors.ts, src/components/LanguageBadge.tsx, src/App.tsx, src/main.tsx)
 - [2026-09-24] Added 401 auth error handling — invalid/expired PAT previously showed generic "Failed to load repositories" with a Retry button that could never succeed; Home now shows "GitHub token is invalid or expired" with an Open Settings link (files: src/pages/Home.tsx)
 - [2026-09-24] Disabled TanStack Query retries on 401 in `useRepos` — bad tokens triggered 3 pointless retries per search keystroke (visible as repeated 401s in console); non-auth errors still retry up to 3 times (files: src/hooks/useRepos.ts)
 - [2026-09-24] Settings page now validates PATs against GitHub `/rate_limit` before saving — invalid tokens are rejected with a clear error message instead of silently breaking all API calls; empty input still removes the stored token (files: src/pages/Settings.tsx)
@@ -29,6 +34,16 @@
 - [2026-07-24] Added scroll lock to `Panel` component — sets `document.body.style.overflow = 'hidden'` when modal is open, restores on close/unmount (files: src/components/Panel.tsx)
 
 ## Performance
+- [2026-09-24] Query cache correctness — `useRepos` keys now include `authRevision` + `ignoredTopics`/`ignoredLanguages` (previously token/pref changes silently reused stale results); Home wires them via the new `useAuthRevision` hook (files: src/hooks/useRepos.ts, src/hooks/useAuth.ts, src/pages/Home.tsx)
+- [2026-09-24] GraphQL enrichment slimmed — dynamic selections fetch only fields required by active filters (README text only for the english filter; contributors/releases/recent-commits only when a filter needs them) (files: src/lib/github.ts, src/lib/developerFilters.ts, src/types/github.ts)
+- [2026-09-24] AbortSignal cancellation through REST search + GraphQL enrichment — changing filters or pages cancels in-flight requests (files: src/lib/github.ts, src/hooks/useRepos.ts)
+- [2026-09-24] Bookmarks/Collections panels converted from manual `Promise.allSettled` effects to `useQueries` with a shared `['repo', fullName]` cache — cross-panel dedup, HTTP caching, cancellation (files: src/components/BookmarksPanel.tsx, src/components/CollectionsPanel.tsx)
+- [2026-09-24] RepoCard switched to selector hooks (`useBookmarked`/`useIsInAnyCollection`/`useCollections`) — cards re-render only when their own bookmark/collection state changes (files: src/components/RepoCard.tsx, src/hooks/usePersonalization.ts)
+- [2026-09-24] Infinite-scroll guard — consecutive fully-filtered pages stop auto-fetching after 3 (manual "Load more" button); empty results with more pages show an explicit "Search more" CTA instead of dead-ending (files: src/components/RepoGrid.tsx, src/hooks/useRepos.ts)
+- [2026-09-24] Retry policy — 4xx never retried (403 rate limits no longer burn attempts), 5xx retried once; error Retry uses `fetchNextPage` when data exists to avoid refetching all loaded pages (files: src/hooks/useRepos.ts, src/pages/Home.tsx)
+- [2026-09-24] Min-stars input debounced with 400ms draft state — typing no longer refetches per keystroke (files: src/components/MinStarsInput.tsx, src/pages/Home.tsx)
+- [2026-09-24] Panels lazily mounted — single `activePanel` state in Home, only the open panel is rendered (files: src/pages/Home.tsx)
+- [2026-09-24] `useClickOutside` stores `onClose` in a ref — dropdown listeners no longer re-subscribe every render (files: src/hooks/useClickOutside.ts)
 - [2026-07-24] Merged README GraphQL query into main enrichment queries — eliminated the separate `enrichWithReadmeText` call by adding `readme: object(expression: "HEAD:README.md")` fields to both `enrichWithGraphQL` and `enrichWithDeveloperData`, reducing GraphQL API calls from 2→1 per page when README filter is active (files: src/lib/github.ts, src/types/github.ts)
 - [2026-07-24] Deleted now-unused `enrichWithReadmeText` function (files: src/lib/github.ts)
 - [2026-07-24] Added Vite `manualChunks` config: split vendor-react, vendor-router, vendor-query, vendor-date into separate cache-friendly chunks (files: vite.config.ts)
@@ -40,6 +55,11 @@
 - [2026-07-24] Memoized `grouped` license reduction with `useMemo` — static 15-entry array was being reduced on every FilterSidebar render (files: src/components/LicenseLegend.tsx)
 
 ## Refactor
+- [2026-09-24] Created `authStore` (token + revision + cross-tab sync); `github.ts`/Settings/Home read the token via the store instead of scattered localStorage access (files: src/lib/authStore.ts, src/lib/github.ts, src/pages/Settings.tsx, src/hooks/useAuth.ts)
+- [2026-09-24] `userPreferences` converted to an external store consumed via `useSyncExternalStore` with structural sharing; dead watchlist feature removed; selector hooks added (files: src/lib/userPreferences.ts, src/hooks/usePersonalization.ts, src/types/github.ts)
+- [2026-09-24] `useRepos` — dedupes repos by id across pages, exposes `emptyPageStreak`, dropped `totalCount`/`rawCount` from the public return (files: src/hooks/useRepos.ts, src/lib/github.ts)
+- [2026-09-24] FilterSidebar — hoisted `SectionHeader`/`POPULAR_LANGUAGES` out of the component (were recreated every render); PAT badges on token-dependent developer filters + README english hint (files: src/components/FilterSidebar.tsx, src/lib/developerFilters.ts)
+- [2026-09-24] Extracted `App.tsx` from `main.tsx` and `LANGUAGE_COLORS` to `lib/languageColors.ts` (react-refresh boundaries); created `ERROR-LOG.md`; test suite grew 101 → 167 (files: src/App.tsx, src/main.tsx, src/lib/languageColors.ts, ERROR-LOG.md)
 - [2026-07-24] Added 6 tests for `getAPISortField` and 2 edge cases for `formatNumber` to utils.test.ts (files: src/__tests__/utils.test.ts)
 - [2026-07-24] Added 6 variant tests to RepoCard.test.tsx: null description, openPRs=0 hidden, >5 topics +N indicator, developer badge rendering (files: src/__tests__/RepoCard.test.tsx)
 - [2026-07-24] Created `userPreferences.test.ts` with 21 tests covering: load defaults, corrupted JSON recovery, bookmark add/remove, collection CRUD, topic follow/unfollow/ignore/unignore, language ignore/unignore, watchlist CRUD, preferences-changed event dispatch (files: src/__tests__/userPreferences.test.ts)

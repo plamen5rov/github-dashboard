@@ -73,16 +73,20 @@ export interface GitHubAPIError {
 
 export interface GraphQLRepositoryEnrichment {
   openPRs: number
-  openIssues: number
   languageColor: string | null
-  goodFirstIssueCount: number
-  contributorCount: number
-  recentCommitCount: number
-  releaseCount: number
-  hasReadme: boolean
-  hasTests: boolean
-  dependencyCount: number
+  goodFirstIssueCount?: number
+  contributorCount?: number
+  recentCommitCount?: number
+  releaseCount?: number
   readmeText?: string
+}
+
+export interface EnrichmentFields {
+  readme?: boolean
+  goodFirstIssues?: boolean
+  contributors?: boolean
+  recentCommits?: boolean
+  releases?: boolean
 }
 
 export interface Bookmark {
@@ -100,23 +104,10 @@ export interface Collection {
   updatedAt: string
 }
 
-export interface Watchlist {
-  id: string
-  name: string
-  topics: string[]
-  languages: string[]
-  minStars: number
-  maxStars: number
-  createdAt: string
-  lastChecked: string
-  newMatches: string[]
-}
-
 export interface UserPreferences {
   followedTopics: string[]
   ignoredTopics: string[]
   ignoredLanguages: string[]
   bookmarks: Bookmark[]
   collections: Collection[]
-  watchlists: Watchlist[]
 }

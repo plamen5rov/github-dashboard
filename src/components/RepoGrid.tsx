@@ -5,11 +5,14 @@ import RepoCard from './RepoCard'
 import EmptyState from './EmptyState'
 import { SadFaceIcon } from './Icons'
 
+const MAX_AUTO_EMPTY_PAGES = 3
+
 interface RepoGridProps {
   repos: Repository[]
   hasNextPage: boolean
   isFetchingNextPage: boolean
   isLoading: boolean
+  emptyPageStreak: number
   fetchNextPage: () => void
   onTopicClick: (topic: string) => void
   activeDeveloperFilters?: DeveloperFilter[]
@@ -20,18 +23,24 @@ const RepoGrid = memo(function RepoGrid({
   hasNextPage,
   isFetchingNextPage,
   isLoading,
+  emptyPageStreak,
   fetchNextPage,
   onTopicClick,
   activeDeveloperFilters = [],
 }: RepoGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null)
   const fetchNextPageRef = useRef(fetchNextPage)
-  fetchNextPageRef.current = fetchNextPage
+
+  useEffect(() => {
+    fetchNextPageRef.current = fetchNextPage
+  }, [fetchNextPage])
+
+  const autoFetchAllowed = emptyPageStreak < MAX_AUTO_EMPTY_PAGES
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && autoFetchAllowed) {
           fetchNextPageRef.current()
         }
       },
@@ -41,7 +50,7 @@ const RepoGrid = memo(function RepoGrid({
     const el = sentinelRef.current
     if (el) observer.observe(el)
     return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage])
+  }, [hasNextPage, isFetchingNextPage, autoFetchAllowed])
 
   if (isLoading) {
     return (
@@ -54,6 +63,26 @@ const RepoGrid = memo(function RepoGrid({
   }
 
   if (repos.length === 0) {
+    if (hasNextPage) {
+      return (
+        <div className="space-y-4">
+          <EmptyState
+            icon={<SadFaceIcon />}
+            title="No matches on the loaded pages"
+            description="Repositories were fetched but filtered out. Load more pages to keep searching."
+          />
+          <div className="text-center">
+            <button
+              onClick={fetchNextPage}
+              disabled={isFetchingNextPage}
+              className="px-4 py-2 bg-github-accent text-white rounded-lg hover:bg-github-accent/80 focus:outline-none focus:ring-2 focus:ring-github-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetchingNextPage ? 'Searching…' : 'Search more repositories'}
+            </button>
+          </div>
+        </div>
+      )
+    }
     return <EmptyState icon={<SadFaceIcon />} title="No repositories found" description="Try adjusting your filters or search terms" />
   }
 
@@ -64,7 +93,20 @@ const RepoGrid = memo(function RepoGrid({
           <RepoCard key={repo.id} repo={repo} onTopicClick={onTopicClick} activeDeveloperFilters={activeDeveloperFilters} />
         ))}
       </div>
-      <div ref={sentinelRef} className="h-4 mt-4" aria-hidden="true" />
+      {hasNextPage && autoFetchAllowed && (
+        <div ref={sentinelRef} className="h-4 mt-4" aria-hidden="true" />
+      )}
+      {hasNextPage && !autoFetchAllowed && (
+        <div className="text-center mt-4">
+          <button
+            onClick={fetchNextPage}
+            disabled={isFetchingNextPage}
+            className="px-4 py-2 bg-github-darker border border-github-border text-github-text rounded-lg hover:border-github-accent focus:outline-none focus:ring-2 focus:ring-github-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isFetchingNextPage ? 'Loading…' : 'Load more repositories'}
+          </button>
+        </div>
+      )}
       {isFetchingNextPage && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
           {Array.from({ length: 3 }).map((_, i) => (

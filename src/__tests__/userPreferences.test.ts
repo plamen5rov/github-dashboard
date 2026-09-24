@@ -14,12 +14,14 @@ import {
   unignoreTopic,
   ignoreLanguage,
   unignoreLanguage,
-  addWatchlist,
-  deleteWatchlist,
+  reloadPreferences,
+  getPreferencesSnapshot,
+  subscribePreferences,
 } from '../lib/userPreferences'
 
 beforeEach(() => {
   localStorage.setItem('github_dashboard_preferences', JSON.stringify({}))
+  reloadPreferences()
   vi.stubGlobal('crypto', {
     randomUUID: () => '00000000-0000-0000-0000-000000000000',
   })
@@ -154,18 +156,50 @@ describe('topics', () => {
   })
 })
 
-describe('watchlists', () => {
-  it('creates a watchlist', () => {
-    const wl = addWatchlist('My Watch', ['react'], ['TypeScript'], 100, 50000)
-    expect(wl.topics).toContain('react')
-    expect(wl.languages).toContain('TypeScript')
-    expect(wl.minStars).toBe(100)
+describe('preferences store', () => {
+  it('returns a stable snapshot reference between unrelated reads', () => {
+    const first = getPreferencesSnapshot()
+    const second = getPreferencesSnapshot()
+    expect(first).toBe(second)
   })
 
-  it('deletes a watchlist', () => {
-    const wl = addWatchlist('To Delete')
-    deleteWatchlist(wl.id)
-    expect(loadPreferences().watchlists).toHaveLength(0)
+  it('notifies subscribers on mutation', () => {
+    const listener = vi.fn()
+    const unsubscribe = subscribePreferences(listener)
+    toggleBookmark('owner/repo')
+    expect(listener).toHaveBeenCalled()
+    unsubscribe()
+  })
+
+  it('does not notify subscribers after unsubscribe', () => {
+    const listener = vi.fn()
+    const unsubscribe = subscribePreferences(listener)
+    unsubscribe()
+    toggleBookmark('owner/repo')
+    expect(listener).not.toHaveBeenCalled()
+  })
+
+  it('preserves collection array identity when toggling a bookmark', () => {
+    addCollection('Favorites')
+    const collectionsBefore = getPreferencesSnapshot().collections
+    toggleBookmark('owner/repo')
+    expect(getPreferencesSnapshot().collections).toBe(collectionsBefore)
+  })
+
+  it('preserves bookmark array identity when mutating collections', () => {
+    toggleBookmark('owner/repo')
+    const bookmarksBefore = getPreferencesSnapshot().bookmarks
+    addCollection('Favorites')
+    expect(getPreferencesSnapshot().bookmarks).toBe(bookmarksBefore)
+  })
+
+  it('reloads from storage when preferences change externally', () => {
+    localStorage.setItem(
+      'github_dashboard_preferences',
+      JSON.stringify({ followedTopics: ['external'] }),
+    )
+    window.dispatchEvent(new CustomEvent('preferences-changed'))
+    expect(getPreferencesSnapshot().followedTopics).toEqual(['external'])
   })
 })
 

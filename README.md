@@ -30,7 +30,8 @@ Discover repositories updated in the last **24 hours**, **7 days**, or
   > Beyond a month, `pushed:>YYYY-MM-DD stars:>50 sort:stars` returns the
   > all-time most-starred repos (React, Vue, etc.) every time — the "trending"
   > signal disappears. Shorter windows surface repos actively gaining traction.
-- ♾️ Infinite scroll pagination via `IntersectionObserver`
+- ♾️ Infinite scroll pagination via `IntersectionObserver`, with a manual
+  "Load more" fallback when many pages get filtered out client-side
 - 📱 Fully responsive: 1 column (mobile), 2 columns (tablet), 3 columns (desktop)
 
 ### ✨ Sorting
@@ -90,6 +91,7 @@ All data stored in `localStorage` — no backend required.
   system preference)
 - 🗂️ **Collapsible sidebar** with all filters — hamburger menu on mobile, sticky on desktop
 - ⌨️ Full keyboard navigation and ARIA labels
+- 🪟 Accessible modal panels — `role="dialog"`, Escape to close, focus moves into the dialog
 - 💀 Skeleton loading states (never a blank screen)
 - ⚠️ Error states with retry buttons and rate-limit countdowns
 - 🗳️ Empty states with reset-filters CTAs
@@ -115,13 +117,15 @@ All data stored in `localStorage` — no backend required.
 
 ```text
 src/
+├── App.tsx                      # Route table with lazy-loaded pages
 ├── components/
 │   ├── Icons.tsx                  # SVG icon components
-│   ├── Panel.tsx                  # Reusable modal/wrapper panel
+│   ├── Panel.tsx                  # Reusable accessible modal panel
 │   ├── RepoCard.tsx               # Individual repo display card
 │   ├── RepoGrid.tsx               # Grid layout with infinite scroll
 │   ├── FilterSidebar.tsx          # Collapsible sidebar with all filters
 │   ├── SearchInput.tsx            # Debounced keyword search
+│   ├── MinStarsInput.tsx          # Debounced minimum-stars input
 │   ├── LanguageBadge.tsx          # Color-coded language indicator
 │   ├── LicenseBadge.tsx           # Open source / proprietary badge
 │   ├── LicenseLegend.tsx          # License legend panel
@@ -130,20 +134,23 @@ src/
 │   ├── FollowedTopicsManager.tsx  # Topic following modal
 │   └── IgnoreListManager.tsx      # Ignore list modal
 ├── hooks/
+│   ├── useAuth.ts                 # React binding for auth revision store
 │   ├── useClickOutside.ts         # Detect clicks outside an element
 │   ├── useRepos.ts                # TanStack Query infinite data hook
-│   ├── useFilters.ts              # URL-synced filter state
-│   ├── useSort.ts                 # URL-synced sort state
-│   ├── usePersonalization.ts      # localStorage personalization hook
+│   ├── useFilters.ts              # URL-synced, validated filter state
+│   ├── useSort.ts                 # URL-synced, validated sort state
+│   ├── usePersonalization.ts      # Preference store hooks + selectors
 │   └── useTheme.ts                # Dark/light mode hook
 ├── lib/
+│   ├── authStore.ts               # PAT store with cross-tab sync
 │   ├── github.ts                  # REST + GraphQL API client
 │   ├── utils.ts                   # Formatting helpers
 │   ├── constants.ts               # Options, licenses, dev filters
 │   ├── developerFilters.ts        # Client-side filter evaluation
+│   ├── languageColors.ts          # Language dot color map
 │   ├── licenseLegend.ts           # Open source license guide
 │   ├── readmeLanguage.ts          # English README detection
-│   └── userPreferences.ts         # localStorage CRUD
+│   └── userPreferences.ts         # Preference store + CRUD
 ├── pages/
 │   ├── Home.tsx                   # Main trending feed
 │   └── Settings.tsx               # PAT input, preferences
@@ -225,8 +232,8 @@ The token is stored in **`localStorage`** and sent **only** to GitHub API endpoi
 
 ## Testing
 
-101 tests covering utility functions, component rendering, filter logic,
-and language detection.
+167 tests covering store logic, URL validation, query building, pagination,
+component rendering, filter logic, and language detection.
 
 ```bash
 # Run all tests

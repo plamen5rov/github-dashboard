@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { usePersonalization } from '../hooks/usePersonalization'
-import { getToken, fetchRepoByFullName } from '../lib/github'
+import { useAuthRevision } from '../hooks/useAuth'
+import { fetchRepoByFullName } from '../lib/github'
 import type { Repository } from '../types/github'
 import LanguageBadge from './LanguageBadge'
 import LicenseBadge from './LicenseBadge'
@@ -18,49 +20,41 @@ interface CollectionsPanelProps {
 
 function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelProps) {
   const { prefs, addCollection, deleteCollection, removeFromCollection } = usePersonalization()
+  const authRevision = useAuthRevision()
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [expandedCollection, setExpandedCollection] = useState<string | null>(null)
-  const [reposMap, setReposMap] = useState<Map<string, Repository>>(new Map())
-  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (!isOpen) return
+  const fullNames = useMemo(() => {
+    const names = new Set<string>()
+    prefs.collections.forEach((collection) =>
+      collection.repoFullNames.forEach((fullName) => names.add(fullName)),
+    )
+    return Array.from(names)
+  }, [prefs.collections])
 
-    const allFullNames = new Set<string>()
-    prefs.collections.forEach((c) => c.repoFullNames.forEach((f) => allFullNames.add(f)))
+  const results = useQueries({
+    queries: fullNames.map((fullName) => ({
+      queryKey: ['repo', fullName, authRevision],
+      queryFn: ({ signal }: { signal: AbortSignal }) => fetchRepoByFullName(fullName, signal),
+      enabled: isOpen && fullNames.length > 0,
+      staleTime: 60_000,
+    })),
+  })
 
-    if (allFullNames.size === 0) {
-      setReposMap(new Map())
-      return
-    }
-
-    const fetchRepos = async () => {
-      setLoading(true)
-      const token = getToken()
-      if (!token) {
-        setLoading(false)
-        return
+  const reposMap = useMemo(() => {
+    const map = new Map<string, Repository>()
+    results.forEach((result, index) => {
+      const fullName = fullNames[index]
+      if (fullName && result.data) {
+        map.set(fullName, result.data)
       }
+    })
+    return map
+  }, [results, fullNames])
 
-      const fetched = new Map<string, Repository>()
-      await Promise.allSettled(
-        Array.from(allFullNames).map(async (fullName) => {
-          try {
-            const repo = await fetchRepoByFullName(fullName)
-            if (repo) fetched.set(fullName, repo)
-          } catch {
-            // Skip failed fetches
-          }
-        }),
-      )
-      setReposMap(fetched)
-      setLoading(false)
-    }
-
-    fetchRepos()
-  }, [isOpen, prefs.collections])
+  const loading = results.some((result) => result.isLoading)
 
   return (
     <Panel
@@ -82,7 +76,11 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
       }
     >
       {prefs.collections.length === 0 && !showCreateForm ? (
-        <EmptyState icon={<CollectionIcon />} title="No collections yet" description="Create a collection and add repos from the folder icon on any repo card" />
+        <EmptyState
+          icon={<CollectionIcon />}
+          title="No collections yet"
+          description="Create a collection and add repos from the folder icon on any repo card"
+        />
       ) : (
         <div className="space-y-3">
           {showCreateForm && (
@@ -135,33 +133,32 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
                 key={collection.id}
                 className="bg-github-dark border border-github-border rounded-lg overflow-hidden"
               >
-                <button
-                  onClick={() => setExpandedCollection(isExpanded ? null : collection.id)}
-                  className="w-full p-4 flex items-start justify-between text-left hover:bg-github-border/30 transition-colors"
-                >
-                  <div>
+                <div className="p-4 flex items-start justify-between hover:bg-github-border/30 transition-colors">
+                  <button
+                    onClick={() => setExpandedCollection(isExpanded ? null : collection.id)}
+                    aria-expanded={isExpanded}
+                    className="flex-1 text-left focus:outline-none focus:ring-2 focus:ring-github-accent rounded"
+                  >
                     <h3 className="text-sm font-semibold text-github-text">{collection.name}</h3>
                     {collection.description && (
                       <p className="text-xs text-github-muted mt-1">{collection.description}</p>
                     )}
                     <p className="text-xs text-github-muted mt-2">
-                      {repoCount} repo{repoCount !== 1 ? 's' : ''} · Updated {new Date(collection.updatedAt).toLocaleDateString()}
+                      {repoCount} repo{repoCount !== 1 ? 's' : ''} · Updated{' '}
+                      {new Date(collection.updatedAt).toLocaleDateString()}
                     </p>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  </button>
+                  <div className="flex items-center gap-2 ml-2">
                     {isExpanded && <ChevronUpIcon />}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteCollection(collection.id)
-                      }}
+                      onClick={() => deleteCollection(collection.id)}
                       className="p-1 text-github-muted hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
                       aria-label={`Delete collection ${collection.name}`}
                     >
                       <TrashIcon />
                     </button>
                   </div>
-                </button>
+                </div>
 
                 {isExpanded && (
                   <div className="border-t border-github-border p-4">
@@ -172,7 +169,10 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
                     ) : loading ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {Array.from({ length: repoCount }).map((_, i) => (
-                          <div key={i} className="p-3 bg-github-darker border border-github-border rounded animate-pulse">
+                          <div
+                            key={i}
+                            className="p-3 bg-github-darker border border-github-border rounded animate-pulse"
+                          >
                             <div className="flex items-start gap-2">
                               <div className="w-8 h-8 rounded-full bg-github-border" />
                               <div className="flex-1 space-y-2">
@@ -203,7 +203,9 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
                                     {fullName}
                                   </a>
                                   {repo?.description && (
-                                    <p className="text-xs text-github-muted line-clamp-2 mt-0.5">{repo.description}</p>
+                                    <p className="text-xs text-github-muted line-clamp-2 mt-0.5">
+                                      {repo.description}
+                                    </p>
                                   )}
                                 </div>
                                 <button
@@ -215,17 +217,22 @@ function CollectionsPanel({ isOpen, onClose, onTopicClick }: CollectionsPanelPro
                                 </button>
                               </div>
 
-                                {repo && (
-                                  <>
-                                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                      <LanguageBadge language={repo.language} color={repo.languageColor} />
-                                      <LicenseBadge spdxId={repo.license?.spdxId || null} />
-                                    </div>
+                              {repo && (
+                                <>
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <LanguageBadge language={repo.language} color={repo.languageColor} />
+                                    <LicenseBadge spdxId={repo.license?.spdxId || null} />
+                                  </div>
 
-                                    <RepoStatsRow stars={repo.stars} forks={repo.forks} pushedAt={repo.pushedAt} compact />
+                                  <RepoStatsRow
+                                    stars={repo.stars}
+                                    forks={repo.forks}
+                                    pushedAt={repo.pushedAt}
+                                    compact
+                                  />
 
-                                    <TopicChipList topics={repo.topics} max={3} onTopicClick={onTopicClick} />
-                                  </>
+                                  <TopicChipList topics={repo.topics} max={3} onTopicClick={onTopicClick} />
+                                </>
                               )}
                             </div>
                           )

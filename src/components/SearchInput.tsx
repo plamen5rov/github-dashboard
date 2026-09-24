@@ -8,19 +8,24 @@ interface SearchInputProps {
 
 function SearchInput({ value, onChange }: SearchInputProps) {
   const [inputValue, setInputValue] = useState(value)
+  const [prevValue, setPrevValue] = useState(value)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  if (value !== prevValue) {
+    setPrevValue(value)
+    setInputValue(value)
+  }
 
   useEffect(() => {
     if (inputValue === value) return
     timerRef.current = setTimeout(() => onChangeRef.current(inputValue), 400)
     return () => clearTimeout(timerRef.current)
   }, [inputValue, value])
-
-  useEffect(() => {
-    setInputValue(value)
-  }, [value])
 
   return (
     <div className="relative">

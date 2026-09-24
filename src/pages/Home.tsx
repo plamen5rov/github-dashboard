@@ -6,6 +6,7 @@ import { useSort } from '../hooks/useSort'
 import { useRepos } from '../hooks/useRepos'
 import { useTheme } from '../hooks/useTheme'
 import { usePersonalization } from '../hooks/usePersonalization'
+import { useAuthRevision } from '../hooks/useAuth'
 import { SORT_OPTIONS } from '../lib/constants'
 import { fetchCoreRateLimit } from '../lib/github'
 import type { SortState } from '../hooks/useSort'
@@ -18,24 +19,27 @@ import FollowedTopicsManager from '../components/FollowedTopicsManager'
 import IgnoreListManager from '../components/IgnoreListManager'
 import BookmarksPanel from '../components/BookmarksPanel'
 import FilterSidebar from '../components/FilterSidebar'
+import MinStarsInput from '../components/MinStarsInput'
+
+type PanelId = 'bookmarks' | 'collections' | 'followed' | 'ignore'
 
 function Home() {
   const { filters, updateFilters, resetFilters, activeFilterCount } = useFilters()
   const { sort, setSort, toggleOrder } = useSort()
   const { theme, toggleTheme } = useTheme()
   const { prefs } = usePersonalization()
-  const [showCollections, setShowCollections] = useState(false)
-  const [showFollowedTopics, setShowFollowedTopics] = useState(false)
-  const [showIgnoreList, setShowIgnoreList] = useState(false)
-  const [showBookmarks, setShowBookmarks] = useState(false)
+  const authRevision = useAuthRevision()
+  const [activePanel, setActivePanel] = useState<PanelId | null>(null)
   const [showSidebar, setShowSidebar] = useState(false)
 
   const {
     repos,
+    data,
     rateLimit,
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    emptyPageStreak,
     fetchNextPage,
     isError,
     error,
@@ -51,8 +55,11 @@ function Home() {
     includeForks: filters.includeForks,
     developerFilters: filters.developerFilters,
     readmeLanguage: filters.readmeLanguage,
+    ignoredLanguages: prefs.ignoredLanguages,
+    ignoredTopics: prefs.ignoredTopics,
     sort: sort.field,
     order: sort.order,
+    authRevision,
   })
 
   const { data: coreRateLimit } = useQuery({
@@ -64,11 +71,24 @@ function Home() {
 
   const displayRateLimit = coreRateLimit || rateLimit
 
-  const handleTopicClick = useCallback((topic: string) => {
-    if (!filters.topics.includes(topic)) {
-      updateFilters({ topics: [...filters.topics, topic] })
+  const handleTopicClick = useCallback(
+    (topic: string) => {
+      if (!filters.topics.includes(topic)) {
+        updateFilters({ topics: [...filters.topics, topic] })
+      }
+    },
+    [filters.topics, updateFilters],
+  )
+
+  const handleRetry = useCallback(() => {
+    if (data) {
+      fetchNextPage()
+    } else {
+      refetch()
     }
-  }, [filters.topics, updateFilters])
+  }, [data, fetchNextPage, refetch])
+
+  const closePanel = useCallback(() => setActivePanel(null), [])
 
   const errorStatus = error && 'status' in error ? (error as { status: number }).status : null
   const isRateLimitError = errorStatus === 403
@@ -79,7 +99,6 @@ function Home() {
       <header className="sticky top-0 z-30 bg-github-dark/95 backdrop-blur-sm border-b border-github-border">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            {/* Mobile sidebar toggle */}
             <button
               onClick={() => setShowSidebar(true)}
               className="lg:hidden p-1.5 text-github-muted hover:text-github-text rounded-lg focus:outline-none focus:ring-2 focus:ring-github-accent"
@@ -89,9 +108,7 @@ function Home() {
             </button>
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <GitHubIcon className="w-8 h-8 text-github-text" />
-              <h1 className="text-2xl font-bold text-github-text">
-                GitHub Dashboard
-              </h1>
+              <h1 className="text-2xl font-bold text-github-text">GitHub Dashboard</h1>
             </Link>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
@@ -107,7 +124,7 @@ function Home() {
               </span>
             )}
             <button
-              onClick={() => setShowBookmarks(true)}
+              onClick={() => setActivePanel('bookmarks')}
               className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Bookmarks"
               title="Bookmarks"
@@ -116,7 +133,7 @@ function Home() {
               <BadgeCount count={prefs.bookmarks.length} color="yellow" />
             </button>
             <button
-              onClick={() => setShowCollections(true)}
+              onClick={() => setActivePanel('collections')}
               className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Collections"
               title="Collections"
@@ -125,7 +142,7 @@ function Home() {
               <BadgeCount count={prefs.collections.length} color="blue" />
             </button>
             <button
-              onClick={() => setShowFollowedTopics(true)}
+              onClick={() => setActivePanel('followed')}
               className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Followed topics"
               title="Followed topics"
@@ -134,13 +151,16 @@ function Home() {
               <BadgeCount count={prefs.followedTopics.length} color="green" />
             </button>
             <button
-              onClick={() => setShowIgnoreList(true)}
+              onClick={() => setActivePanel('ignore')}
               className="relative p-2 text-github-muted hover:text-github-text focus:outline-none focus:ring-2 focus:ring-github-accent rounded-lg hidden sm:block"
               aria-label="Ignore list"
               title="Ignore list"
             >
               <NoEntryIcon className="w-5 h-5" />
-              <BadgeCount count={prefs.ignoredTopics.length + prefs.ignoredLanguages.length} color="red" />
+              <BadgeCount
+                count={prefs.ignoredTopics.length + prefs.ignoredLanguages.length}
+                color="red"
+              />
             </button>
             <button
               onClick={toggleTheme}
@@ -164,10 +184,11 @@ function Home() {
         <FilterSidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
 
         <main className="flex-1 min-w-0 px-4 py-6 lg:pl-6">
-          {/* Sort bar */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <label htmlFor="sort-select-main" className="sr-only">Sort by</label>
+              <label htmlFor="sort-select-main" className="sr-only">
+                Sort by
+              </label>
               <select
                 id="sort-select-main"
                 value={sort.field}
@@ -187,23 +208,10 @@ function Home() {
                 aria-label={`Switch to ${sort.order === 'asc' ? 'descending' : 'ascending'} order`}
                 title={sort.order === 'asc' ? 'Ascending' : 'Descending'}
               >
-                {sort.order === 'asc' ? (
-                  <ChevronUpIcon />
-                ) : (
-                  <ChevronDownIcon />
-                )}
+                {sort.order === 'asc' ? <ChevronUpIcon /> : <ChevronDownIcon />}
               </button>
               <div className="w-px h-6 bg-github-border" />
-              <label htmlFor="min-stars" className="text-sm text-github-muted">Min ⭐</label>
-              <input
-                id="min-stars"
-                type="number"
-                min={0}
-                value={filters.minStars || ''}
-                onChange={(e) => updateFilters({ minStars: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1.5 bg-github-darker border border-github-border rounded-lg text-sm text-github-text placeholder-github-muted focus:outline-none focus:ring-2 focus:ring-github-accent"
-                placeholder="0"
-              />
+              <MinStarsInput value={filters.minStars} onChange={(v) => updateFilters({ minStars: v })} />
             </div>
             {activeFilterCount > 0 && (
               <button
@@ -246,7 +254,7 @@ function Home() {
                     </p>
                   )}
                   <button
-                    onClick={() => refetch()}
+                    onClick={handleRetry}
                     className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     Retry
@@ -261,6 +269,7 @@ function Home() {
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             isLoading={isLoading}
+            emptyPageStreak={emptyPageStreak}
             fetchNextPage={fetchNextPage}
             onTopicClick={handleTopicClick}
             activeDeveloperFilters={filters.developerFilters}
@@ -268,10 +277,14 @@ function Home() {
         </main>
       </div>
 
-      <CollectionsPanel isOpen={showCollections} onClose={() => setShowCollections(false)} onTopicClick={handleTopicClick} />
-      <FollowedTopicsManager isOpen={showFollowedTopics} onClose={() => setShowFollowedTopics(false)} />
-      <IgnoreListManager isOpen={showIgnoreList} onClose={() => setShowIgnoreList(false)} />
-      <BookmarksPanel isOpen={showBookmarks} onClose={() => setShowBookmarks(false)} onTopicClick={handleTopicClick} />
+      {activePanel === 'collections' && (
+        <CollectionsPanel isOpen onClose={closePanel} onTopicClick={handleTopicClick} />
+      )}
+      {activePanel === 'followed' && <FollowedTopicsManager isOpen onClose={closePanel} />}
+      {activePanel === 'ignore' && <IgnoreListManager isOpen onClose={closePanel} />}
+      {activePanel === 'bookmarks' && (
+        <BookmarksPanel isOpen onClose={closePanel} onTopicClick={handleTopicClick} />
+      )}
     </div>
   )
 }

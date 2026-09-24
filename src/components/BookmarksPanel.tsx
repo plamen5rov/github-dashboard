@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { usePersonalization } from '../hooks/usePersonalization'
-import { getToken, fetchRepoByFullName } from '../lib/github'
+import { useAuthRevision } from '../hooks/useAuth'
+import { fetchRepoByFullName } from '../lib/github'
 import type { Repository } from '../types/github'
 import { formatRelativeTime } from '../lib/utils'
 import LanguageBadge from './LanguageBadge'
@@ -19,37 +21,30 @@ interface BookmarksPanelProps {
 
 function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) {
   const { prefs, toggleBookmark } = usePersonalization()
-  const [repos, setRepos] = useState<Map<string, Repository>>(new Map())
-  const [loading, setLoading] = useState(false)
+  const authRevision = useAuthRevision()
 
-  useEffect(() => {
-    if (!isOpen || prefs.bookmarks.length === 0) return
+  const results = useQueries({
+    queries: prefs.bookmarks.map((bookmark) => ({
+      queryKey: ['repo', bookmark.fullName, authRevision],
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        fetchRepoByFullName(bookmark.fullName, signal),
+      enabled: isOpen && prefs.bookmarks.length > 0,
+      staleTime: 60_000,
+    })),
+  })
 
-    const fetchBookmarks = async () => {
-      setLoading(true)
-      const token = getToken()
-      if (!token) {
-        setLoading(false)
-        return
+  const repos = useMemo(() => {
+    const map = new Map<string, Repository>()
+    results.forEach((result, index) => {
+      const fullName = prefs.bookmarks[index]?.fullName
+      if (fullName && result.data) {
+        map.set(fullName, result.data)
       }
+    })
+    return map
+  }, [results, prefs.bookmarks])
 
-      const fetched = new Map<string, Repository>()
-      await Promise.allSettled(
-        prefs.bookmarks.map(async (bookmark) => {
-          try {
-            const repo = await fetchRepoByFullName(bookmark.fullName)
-            if (repo) fetched.set(bookmark.fullName, repo)
-          } catch {
-            // Skip failed fetches
-          }
-        }),
-      )
-      setRepos(fetched)
-      setLoading(false)
-    }
-
-    fetchBookmarks()
-  }, [isOpen, prefs.bookmarks])
+  const loading = results.some((result) => result.isLoading)
 
   return (
     <Panel
@@ -63,11 +58,18 @@ function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) 
       }
     >
       {prefs.bookmarks.length === 0 ? (
-        <EmptyState icon={<BookmarkOutlineIcon />} title="No bookmarks yet" description="Click the bookmark icon on any repo to save it here" />
+        <EmptyState
+          icon={<BookmarkOutlineIcon />}
+          title="No bookmarks yet"
+          description="Click the bookmark icon on any repo to save it here"
+        />
       ) : loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="p-5 bg-github-dark border border-github-border rounded-xl animate-pulse">
+            <div
+              key={i}
+              className="p-5 bg-github-dark border border-github-border rounded-xl animate-pulse"
+            >
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-github-border" />
                 <div className="flex-1 space-y-2">
@@ -98,7 +100,9 @@ function BookmarksPanel({ isOpen, onClose, onTopicClick }: BookmarksPanelProps) 
                       {bookmark.fullName}
                     </a>
                     {repo?.description && (
-                      <p className="text-xs text-github-muted line-clamp-2 mt-1">{repo.description}</p>
+                      <p className="text-xs text-github-muted line-clamp-2 mt-1">
+                        {repo.description}
+                      </p>
                     )}
                   </div>
                   <button

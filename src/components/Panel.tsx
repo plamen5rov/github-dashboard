@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { CloseIcon } from './Icons'
 
 interface PanelProps {
@@ -23,10 +23,37 @@ function Panel({
   footer,
   headerExtra,
 }: PanelProps) {
+  const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   useEffect(() => {
     if (!isOpen) return
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCloseRef.current()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) {
+      dialogRef.current?.focus()
+    }
   }, [isOpen])
 
   if (!isOpen) return null
@@ -34,12 +61,19 @@ function Panel({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className={`w-full ${maxW} ${maxH} bg-github-darker border border-github-border rounded-xl shadow-2xl overflow-hidden flex flex-col`}
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`w-full ${maxW} ${maxH} bg-github-darker border border-github-border rounded-xl shadow-2xl overflow-hidden flex flex-col focus:outline-none`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-github-border">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-github-text">{title}</h2>
+            <h2 id={titleId} className="text-lg font-semibold text-github-text">
+              {title}
+            </h2>
             {headerExtra}
           </div>
           <button
@@ -51,15 +85,9 @@ function Panel({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-4">{children}</div>
 
-        {footer && (
-          <div className="p-4 border-t border-github-border">
-            {footer}
-          </div>
-        )}
+        {footer && <div className="p-4 border-t border-github-border">{footer}</div>}
       </div>
     </div>
   )

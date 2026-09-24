@@ -4,18 +4,15 @@ import type {
   RateLimitInfo,
   GitHubAPIError,
   GraphQLRepositoryEnrichment,
+  EnrichmentFields,
 } from '../types/github'
 import { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, DEFAULT_PER_PAGE } from './constants'
 import type { BuildQueryOptions, SortField, SortOrder } from './utils'
 import { buildGitHubQuery, getAPISortField } from './utils'
-import { evaluateDeveloperFilter } from './developerFilters'
+import { evaluateDeveloperFilter, requiredEnrichmentFields } from './developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
-import { loadPreferences } from './userPreferences'
 import { detectReadmeLanguage } from './readmeLanguage'
-
-function getToken(): string | null {
-  return localStorage.getItem('github_token') || null
-}
+import { getToken } from './authStore'
 
 export { getToken }
 
@@ -58,6 +55,23 @@ async function checkResponse(response: Response): Promise<void> {
   }
 }
 
+export async function validateToken(token: string): Promise<{ ok: boolean; status?: number }> {
+  try {
+    const response = await fetch(`${GITHUB_API_BASE}/rate_limit`, {
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+    if (response.ok) {
+      return { ok: true }
+    }
+    return { ok: false, status: response.status }
+  } catch {
+    return { ok: false }
+  }
+}
+
 function normalizeRepo(rest: GitHubRepositoryREST): Repository {
   return {
     id: rest.id,
@@ -93,7 +107,8 @@ async function searchRepositories(
   order: SortOrder,
   page: number = 1,
   perPage: number = DEFAULT_PER_PAGE,
-): Promise<{ repos: Repository[]; totalCount: number; rateLimit: RateLimitInfo }> {
+  signal?: AbortSignal,
+): Promise<{ repos: Repository[]; rateLimit: RateLimitInfo }> {
   const query = buildGitHubQuery(options)
   const apiSort = getAPISortField(sort)
 
@@ -109,7 +124,7 @@ async function searchRepositories(
   }
 
   const url = `${GITHUB_API_BASE}/search/repositories?${params.toString()}`
-  const response = await fetch(url, { headers: getHeaders() })
+  const response = await fetch(url, { headers: getHeaders(), signal })
 
   await checkResponse(response)
 
@@ -120,12 +135,38 @@ async function searchRepositories(
     normalizeRepo(item),
   )
 
-  return { repos, totalCount: data.total_count || 0, rateLimit }
+  return { repos, rateLimit }
 }
 
-async function enrichWithGraphQL(
+function buildEnrichmentSelections(fields: EnrichmentFields): string[] {
+  const selections = [
+    'pullRequests(states: OPEN) { totalCount }',
+    'primaryLanguage { color }',
+  ]
+  if (fields.goodFirstIssues) {
+    selections.push('goodFirstIssues: issues(labels: ["good first issue"], states: OPEN) { totalCount }')
+  }
+  if (fields.contributors) {
+    selections.push('mentionableUsers { totalCount }')
+  }
+  if (fields.recentCommits) {
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    selections.push(`defaultBranchRef { target { ... on Commit { history(since: "${since}") { totalCount } } } }`)
+  }
+  if (fields.releases) {
+    selections.push('releases(first: 1) { totalCount }')
+  }
+  if (fields.readme) {
+    selections.push('readme: object(expression: "HEAD:README.md") { ... on Blob { text } }')
+  }
+  return selections
+}
+
+async function enrichRepositories(
   repoNames: string[],
-): Promise<Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>> {
+  fields: EnrichmentFields,
+  signal?: AbortSignal,
+): Promise<Map<string, GraphQLRepositoryEnrichment>> {
   if (repoNames.length === 0) return new Map()
 
   const token = getToken()
@@ -133,164 +174,87 @@ async function enrichWithGraphQL(
     return new Map()
   }
 
+  const selections = buildEnrichmentSelections(fields)
+
   const repoQueries = repoNames
     .map((fullName, i) => {
       const [owner, name] = fullName.split('/')
-      return `
-        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
-          pullRequests(states: OPEN) { totalCount }
-          issues(states: OPEN) { totalCount }
-          primaryLanguage { name color }
-          readme: object(expression: "HEAD:README.md") {
-            ... on Blob {
-              isTruncated
-              text
-            }
-          }
-        }
-      `
+      return `repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") { ${selections.join(' ')} }`
     })
     .join('\n')
-
-  const query = `query { ${repoQueries} }`
 
   const response = await fetch(GITHUB_GRAPHQL_URL, {
     method: 'POST',
     headers: getHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: `query { ${repoQueries} }` }),
+    signal,
   })
 
   await checkResponse(response)
 
   const data = await response.json()
-  const result = new Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>()
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    const error: GitHubAPIError = {
+      message: data.errors[0]?.message || 'GraphQL error',
+      status: response.status,
+    }
+    throw error
+  }
+
+  const result = new Map<string, GraphQLRepositoryEnrichment>()
 
   repoNames.forEach((fullName, i) => {
     const repo = data.data?.[`repo_${i}`]
-    if (repo) {
-      const entry: { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string } = {
-        openPRs: repo.pullRequests?.totalCount || 0,
-        openIssues: repo.issues?.totalCount || 0,
-        languageColor: repo.primaryLanguage?.color || null,
-      }
-      if (repo.readme?.text) {
-        entry.readmeText = repo.readme.text
-      }
-      result.set(fullName, entry)
+    if (!repo) return
+    const entry: GraphQLRepositoryEnrichment = {
+      openPRs: repo.pullRequests?.totalCount || 0,
+      languageColor: repo.primaryLanguage?.color || null,
     }
+    if (fields.goodFirstIssues) {
+      entry.goodFirstIssueCount = repo.goodFirstIssues?.totalCount || 0
+    }
+    if (fields.contributors) {
+      entry.contributorCount = repo.mentionableUsers?.totalCount || 0
+    }
+    if (fields.recentCommits) {
+      entry.recentCommitCount = repo.defaultBranchRef?.target?.history?.totalCount || 0
+    }
+    if (fields.releases) {
+      entry.releaseCount = repo.releases?.totalCount || 0
+    }
+    if (fields.readme && repo.readme?.text) {
+      entry.readmeText = repo.readme.text
+    }
+    result.set(fullName, entry)
   })
 
   return result
 }
 
-async function enrichWithDeveloperData(
-  repoNames: string[],
-): Promise<Map<string, import('../types/github').GraphQLRepositoryEnrichment>> {
-  if (repoNames.length === 0) return new Map()
-
-  const token = getToken()
-  if (!token) {
-    return new Map()
-  }
-
-  const repoQueries = repoNames
-    .map((fullName, i) => {
-      const [owner, name] = fullName.split('/')
-      return `
-        repo_${i}: repository(owner: "${escapeGraphQL(owner)}", name: "${escapeGraphQL(name)}") {
-          pullRequests(states: OPEN) { totalCount }
-          allIssues: issues(states: OPEN) { totalCount }
-          goodFirstIssues: issues(labels: ["good first issue"], states: OPEN) { totalCount }
-          primaryLanguage { name color }
-          mentionableUsers { totalCount }
-          defaultBranchRef {
-            target {
-              ... on Commit {
-                history(since: "${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}") {
-                  totalCount
-                }
-              }
-            }
-          }
-          releases(first: 1) { totalCount }
-          repositoryTopics(first: 10) { nodes { topic { name } } }
-          licenseInfo { spdxId }
-          isArchived
-          stargazerCount
-          forkCount
-          readme: object(expression: "HEAD:README.md") {
-            ... on Blob {
-              isTruncated
-              text
-            }
-          }
-        }
-      `
-    })
-    .join('\n')
-
-  const query = `query { ${repoQueries} }`
-
-  const response = await fetch(GITHUB_GRAPHQL_URL, {
-    method: 'POST',
-    headers: getHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ query }),
-  })
-
-  if (!response.ok) {
-    return new Map()
-  }
-
-  const data = await response.json()
-  const result = new Map<string, import('../types/github').GraphQLRepositoryEnrichment>()
-
-  repoNames.forEach((fullName, i) => {
-    const repo = data.data?.[`repo_${i}`]
-    if (repo) {
-      result.set(fullName, {
-        openPRs: repo.pullRequests?.totalCount || 0,
-        openIssues: repo.allIssues?.totalCount || 0,
-        languageColor: repo.primaryLanguage?.color || null,
-        goodFirstIssueCount: repo.goodFirstIssues?.totalCount || 0,
-        contributorCount: repo.mentionableUsers?.totalCount || 0,
-        recentCommitCount: repo.defaultBranchRef?.target?.history?.totalCount || 0,
-        releaseCount: repo.releases?.totalCount || 0,
-        hasReadme: repo.readme?.text ? true : false,
-        hasTests: false,
-        dependencyCount: 0,
-        readmeText: repo.readme?.text || undefined,
-      })
-    }
-  })
-
-  return result
-}
-
-export async function fetchRepoByFullName(fullName: string): Promise<Repository | null> {
+export async function fetchRepoByFullName(fullName: string, signal?: AbortSignal): Promise<Repository | null> {
   const [owner, name] = fullName.split('/')
   const url = `${GITHUB_API_BASE}/repos/${owner}/${name}`
-  const response = await fetch(url, { headers: getHeaders() })
+  const response = await fetch(url, { headers: getHeaders(), signal })
 
   if (!response.ok) return null
 
   const data = await response.json()
   const repo = normalizeRepo(data)
 
-  const token = getToken()
-  if (token) {
+  if (getToken()) {
     try {
-      const enriched = await enrichWithGraphQL([fullName])
+      const enriched = await enrichRepositories([fullName], {}, signal)
       const extra = enriched.get(fullName)
       if (extra) {
         repo.openPRs = extra.openPRs
         repo.languageColor = extra.languageColor
       }
-    } catch {
-      // Skip enrichment
+    } catch (err) {
+      if (signal?.aborted) throw err
     }
   }
 
-  return { ...repo }
+  return repo
 }
 
 export async function fetchCoreRateLimit(): Promise<RateLimitInfo | null> {
@@ -313,13 +277,12 @@ export async function fetchReposWithIntelligence(
   sort: SortField,
   order: SortOrder,
   page: number = 1,
-): Promise<{ repos: Repository[]; totalCount: number; rateLimit: RateLimitInfo; rawCount: number; serverReposCount: number }> {
-  const prefs = loadPreferences()
-
+  signal?: AbortSignal,
+): Promise<{ repos: Repository[]; rateLimit: RateLimitInfo; serverReposCount: number }> {
   const queryOptions = { ...options }
 
-  if (prefs.ignoredLanguages && prefs.ignoredLanguages.length > 0) {
-    const ignoredLangs = prefs.ignoredLanguages.map((l) => `-language:${l.toLowerCase()}`).join(' ')
+  if (queryOptions.ignoredLanguages && queryOptions.ignoredLanguages.length > 0) {
+    const ignoredLangs = queryOptions.ignoredLanguages.map((l) => `-language:${l.toLowerCase()}`).join(' ')
     if (queryOptions.keyword) {
       queryOptions.keyword = `${queryOptions.keyword} ${ignoredLangs}`
     } else {
@@ -327,14 +290,18 @@ export async function fetchReposWithIntelligence(
     }
   }
 
-  const { repos, totalCount: apiTotalCount, rateLimit } = await searchRepositories(queryOptions, sort, order, page)
+  const { repos, rateLimit } = await searchRepositories(queryOptions, sort, order, page, DEFAULT_PER_PAGE, signal)
   const serverReposCount = repos.length
 
+  if (signal?.aborted) {
+    throw new DOMException('Aborted', 'AbortError')
+  }
+
+  const ignoredTopics = (options.ignoredTopics || []).map((t) => t.toLowerCase())
+
   const filteredRepos = repos.filter((repo) => {
-    if (prefs.ignoredTopics && prefs.ignoredTopics.length > 0) {
-      const hasIgnoredTopic = repo.topics.some((t) =>
-        prefs.ignoredTopics.includes(t.toLowerCase()),
-      )
+    if (ignoredTopics.length > 0) {
+      const hasIgnoredTopic = repo.topics.some((t) => ignoredTopics.includes(t.toLowerCase()))
       if (hasIgnoredTopic) return false
     }
     if (options.licenseType === 'no_license') {
@@ -346,81 +313,50 @@ export async function fetchReposWithIntelligence(
     return true
   })
 
+  const fullNames = Array.from(new Map(filteredRepos.map((r) => [r.fullName, r])).keys())
+
+  let enrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
   const token = getToken()
-  if (token && filteredRepos.length > 0) {
-    const fullNameMap = new Map(filteredRepos.map((r) => [r.fullName, r]))
-    const fullNames = Array.from(fullNameMap.keys())
 
-    let finalRepos: Repository[] = filteredRepos
-    let developerEnrichmentMap = new Map<string, GraphQLRepositoryEnrichment>()
-    const hasDevFilters = options.developerFilters && options.developerFilters.length > 0
-    let graphqlEnrichmentMap = new Map<string, { openPRs: number; openIssues: number; languageColor: string | null; readmeText?: string }>()
-
-    if (hasDevFilters) {
-      try {
-        developerEnrichmentMap = await enrichWithDeveloperData(fullNames)
-        filteredRepos.forEach((repo) => {
-          const extra = developerEnrichmentMap.get(repo.fullName)
-          if (extra) {
-            repo.openPRs = extra.openPRs
-            repo.languageColor = extra.languageColor
-          }
-        })
-      } catch {
-        try {
-          const enriched = await enrichWithGraphQL(fullNames)
-          filteredRepos.forEach((repo) => {
-            const extra = enriched.get(repo.fullName)
-            if (extra) {
-              repo.openPRs = extra.openPRs
-              repo.languageColor = extra.languageColor
-            }
-          })
-        } catch {
-          // GraphQL enrichment failed, continue with REST data
-        }
-      }
-
-      const developerFilters = options.developerFilters as DeveloperFilter[]
-      finalRepos = filteredRepos.filter((repo) => {
-        const enrichment = developerEnrichmentMap.get(repo.fullName)
-        return developerFilters.some((filter) => {
-          const result = evaluateDeveloperFilter(filter, repo, enrichment)
-          return result.matches
-        })
-      })
-    } else {
-      try {
-        graphqlEnrichmentMap = await enrichWithGraphQL(fullNames)
-        filteredRepos.forEach((repo) => {
-          const extra = graphqlEnrichmentMap.get(repo.fullName)
-          if (extra) {
-            repo.openPRs = extra.openPRs
-            repo.languageColor = extra.languageColor
-          }
-        })
-      } catch {
-        // GraphQL enrichment failed, continue with REST data
-      }
+  if (token && fullNames.length > 0) {
+    const fields = requiredEnrichmentFields(
+      options.developerFilters as DeveloperFilter[] | undefined,
+      options.readmeLanguage,
+    )
+    try {
+      enrichmentMap = await enrichRepositories(fullNames, fields, signal)
+    } catch (err) {
+      if (signal?.aborted) throw err
     }
-
-    if (options.readmeLanguage === 'english') {
-      finalRepos = finalRepos.filter((repo) => {
-        if (hasDevFilters) {
-          const enrichment = developerEnrichmentMap.get(repo.fullName)
-          if (!enrichment?.readmeText) return false
-          return detectReadmeLanguage(enrichment.readmeText) === 'english'
-        }
-        const extra = graphqlEnrichmentMap.get(repo.fullName)
-        if (!extra?.readmeText) return false
-        return detectReadmeLanguage(extra.readmeText) === 'english'
-      })
-    }
-
-    return { repos: finalRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length, serverReposCount }
+    filteredRepos.forEach((repo) => {
+      const extra = enrichmentMap.get(repo.fullName)
+      if (extra) {
+        repo.openPRs = extra.openPRs
+        repo.languageColor = extra.languageColor
+      }
+    })
   }
 
-  const fallbackRepos: Repository[] = filteredRepos
+  let finalRepos = filteredRepos
 
-  return { repos: fallbackRepos, totalCount: apiTotalCount, rateLimit, rawCount: filteredRepos.length, serverReposCount }
+  if (options.developerFilters && options.developerFilters.length > 0) {
+    const developerFilters = options.developerFilters as DeveloperFilter[]
+    finalRepos = finalRepos.filter((repo) => {
+      const enrichment = enrichmentMap.get(repo.fullName)
+      return developerFilters.some((filter) => {
+        const result = evaluateDeveloperFilter(filter, repo, enrichment)
+        return result.matches
+      })
+    })
+  }
+
+  if (options.readmeLanguage === 'english' && token) {
+    finalRepos = finalRepos.filter((repo) => {
+      const readmeText = enrichmentMap.get(repo.fullName)?.readmeText
+      if (!readmeText) return false
+      return detectReadmeLanguage(readmeText) === 'english'
+    })
+  }
+
+  return { repos: finalRepos, rateLimit, serverReposCount }
 }

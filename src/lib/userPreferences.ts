@@ -1,20 +1,21 @@
-import type { UserPreferences, Collection, Watchlist } from '../types/github'
+import type { UserPreferences, Collection } from '../types/github'
 
 const STORAGE_KEY = 'github_dashboard_preferences'
 
-const DEFAULT_PREFERENCES: UserPreferences = {
-  followedTopics: [],
-  ignoredTopics: [],
-  ignoredLanguages: [],
-  bookmarks: [],
-  collections: [],
-  watchlists: [],
+function freshDefaults(): UserPreferences {
+  return {
+    followedTopics: [],
+    ignoredTopics: [],
+    ignoredLanguages: [],
+    bookmarks: [],
+    collections: [],
+  }
 }
 
 export function loadPreferences(): UserPreferences {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES))
+    if (!stored) return freshDefaults()
     const parsed = JSON.parse(stored)
     return {
       followedTopics: parsed.followedTopics ?? [],
@@ -22,143 +23,154 @@ export function loadPreferences(): UserPreferences {
       ignoredLanguages: parsed.ignoredLanguages ?? [],
       bookmarks: parsed.bookmarks ?? [],
       collections: parsed.collections ?? [],
-      watchlists: parsed.watchlists ?? [],
     }
   } catch {
-    return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES))
+    return freshDefaults()
+  }
+}
+
+let cachedPrefs: UserPreferences = typeof localStorage !== 'undefined' ? loadPreferences() : freshDefaults()
+let localWrite = false
+const listeners = new Set<() => void>()
+
+function notifyListeners() {
+  listeners.forEach((listener) => listener())
+}
+
+export function reloadPreferences(): void {
+  cachedPrefs = loadPreferences()
+  notifyListeners()
+}
+
+export function getPreferencesSnapshot(): UserPreferences {
+  return cachedPrefs
+}
+
+export function subscribePreferences(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
   }
 }
 
 export function savePreferences(prefs: Partial<UserPreferences>): UserPreferences {
-  const current = loadPreferences()
-  const updated = { ...current, ...prefs }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-  window.dispatchEvent(new CustomEvent('preferences-changed'))
-  return updated
+  const next = { ...cachedPrefs, ...prefs }
+  cachedPrefs = next
+  localWrite = true
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    window.dispatchEvent(new CustomEvent('preferences-changed'))
+  } finally {
+    localWrite = false
+  }
+  notifyListeners()
+  return next
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('preferences-changed', () => {
+    if (!localWrite) {
+      reloadPreferences()
+    }
+  })
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) {
+      reloadPreferences()
+    }
+  })
 }
 
 export function isBookmarked(fullName: string): boolean {
-  const prefs = loadPreferences()
-  return prefs.bookmarks.some((b) => b.fullName === fullName)
+  return cachedPrefs.bookmarks.some((b) => b.fullName === fullName)
 }
 
 export function toggleBookmark(fullName: string, note?: string): UserPreferences {
-  const prefs = loadPreferences()
-  const exists = prefs.bookmarks.findIndex((b) => b.fullName === fullName)
+  const bookmarks = [...cachedPrefs.bookmarks]
+  const exists = bookmarks.findIndex((b) => b.fullName === fullName)
 
   if (exists >= 0) {
-    prefs.bookmarks.splice(exists, 1)
+    bookmarks.splice(exists, 1)
   } else {
-    prefs.bookmarks.push({ fullName, addedAt: new Date().toISOString(), note })
+    bookmarks.push({ fullName, addedAt: new Date().toISOString(), note })
   }
 
-  return savePreferences({ bookmarks: prefs.bookmarks })
+  return savePreferences({ bookmarks })
 }
 
 export function addCollection(name: string, description?: string): Collection {
-  const prefs = loadPreferences()
+  const now = new Date().toISOString()
   const collection: Collection = {
     id: crypto.randomUUID(),
     name,
     description,
     repoFullNames: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   }
-  prefs.collections.push(collection)
-  savePreferences({ collections: prefs.collections })
+  savePreferences({ collections: [...cachedPrefs.collections, collection] })
   return collection
 }
 
 export function deleteCollection(id: string): void {
-  const prefs = loadPreferences()
-  prefs.collections = prefs.collections.filter((c) => c.id !== id)
-  savePreferences({ collections: prefs.collections })
+  savePreferences({ collections: cachedPrefs.collections.filter((c) => c.id !== id) })
 }
 
 export function addToCollection(collectionId: string, repoFullName: string): void {
-  const prefs = loadPreferences()
-  const collection = prefs.collections.find((c) => c.id === collectionId)
+  const collection = cachedPrefs.collections.find((c) => c.id === collectionId)
   if (collection && !collection.repoFullNames.includes(repoFullName)) {
-    collection.repoFullNames.push(repoFullName)
-    collection.updatedAt = new Date().toISOString()
-    savePreferences({ collections: prefs.collections })
+    savePreferences({
+      collections: cachedPrefs.collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, repoFullNames: [...c.repoFullNames, repoFullName], updatedAt: new Date().toISOString() }
+          : c,
+      ),
+    })
   }
 }
 
 export function removeFromCollection(collectionId: string, repoFullName: string): void {
-  const prefs = loadPreferences()
-  const collection = prefs.collections.find((c) => c.id === collectionId)
+  const collection = cachedPrefs.collections.find((c) => c.id === collectionId)
   if (collection) {
-    collection.repoFullNames = collection.repoFullNames.filter((f) => f !== repoFullName)
-    collection.updatedAt = new Date().toISOString()
-    savePreferences({ collections: prefs.collections })
+    savePreferences({
+      collections: cachedPrefs.collections.map((c) =>
+        c.id === collectionId
+          ? {
+              ...c,
+              repoFullNames: c.repoFullNames.filter((f) => f !== repoFullName),
+              updatedAt: new Date().toISOString(),
+            }
+          : c,
+      ),
+    })
   }
-}
-
-export function addWatchlist(name: string, topics: string[] = [], languages: string[] = [], minStars = 0, maxStars = 100000): Watchlist {
-  const prefs = loadPreferences()
-  const watchlist: Watchlist = {
-    id: crypto.randomUUID(),
-    name,
-    topics,
-    languages,
-    minStars,
-    maxStars,
-    createdAt: new Date().toISOString(),
-    lastChecked: new Date().toISOString(),
-    newMatches: [],
-  }
-  prefs.watchlists.push(watchlist)
-  savePreferences({ watchlists: prefs.watchlists })
-  return watchlist
-}
-
-export function deleteWatchlist(id: string): void {
-  const prefs = loadPreferences()
-  prefs.watchlists = prefs.watchlists.filter((w) => w.id !== id)
-  savePreferences({ watchlists: prefs.watchlists })
 }
 
 export function followTopic(topic: string): void {
-  const prefs = loadPreferences()
-  if (!prefs.followedTopics.includes(topic)) {
-    prefs.followedTopics.push(topic)
-    savePreferences({ followedTopics: prefs.followedTopics })
+  if (!cachedPrefs.followedTopics.includes(topic)) {
+    savePreferences({ followedTopics: [...cachedPrefs.followedTopics, topic] })
   }
 }
 
 export function unfollowTopic(topic: string): void {
-  const prefs = loadPreferences()
-  prefs.followedTopics = prefs.followedTopics.filter((t) => t !== topic)
-  savePreferences({ followedTopics: prefs.followedTopics })
+  savePreferences({ followedTopics: cachedPrefs.followedTopics.filter((t) => t !== topic) })
 }
 
 export function ignoreTopic(topic: string): void {
-  const prefs = loadPreferences()
-  if (!prefs.ignoredTopics.includes(topic)) {
-    prefs.ignoredTopics.push(topic)
-    savePreferences({ ignoredTopics: prefs.ignoredTopics })
+  if (!cachedPrefs.ignoredTopics.includes(topic)) {
+    savePreferences({ ignoredTopics: [...cachedPrefs.ignoredTopics, topic] })
   }
 }
 
 export function unignoreTopic(topic: string): void {
-  const prefs = loadPreferences()
-  prefs.ignoredTopics = prefs.ignoredTopics.filter((t) => t !== topic)
-  savePreferences({ ignoredTopics: prefs.ignoredTopics })
+  savePreferences({ ignoredTopics: cachedPrefs.ignoredTopics.filter((t) => t !== topic) })
 }
 
 export function ignoreLanguage(language: string): void {
-  const prefs = loadPreferences()
-  if (!prefs.ignoredLanguages.includes(language)) {
-    prefs.ignoredLanguages.push(language)
-    savePreferences({ ignoredLanguages: prefs.ignoredLanguages })
+  if (!cachedPrefs.ignoredLanguages.includes(language)) {
+    savePreferences({ ignoredLanguages: [...cachedPrefs.ignoredLanguages, language] })
   }
 }
 
 export function unignoreLanguage(language: string): void {
-  const prefs = loadPreferences()
-  prefs.ignoredLanguages = prefs.ignoredLanguages.filter((l) => l !== language)
-  savePreferences({ ignoredLanguages: prefs.ignoredLanguages })
+  savePreferences({ ignoredLanguages: cachedPrefs.ignoredLanguages.filter((l) => l !== language) })
 }
-

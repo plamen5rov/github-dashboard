@@ -38,6 +38,8 @@ export interface BuildQueryOptions {
   includeForks?: boolean
   readmeLanguage?: 'all' | 'english'
   developerFilters?: string[]
+  ignoredLanguages?: string[]
+  ignoredTopics?: string[]
 }
 
 export function buildGitHubQuery(options: BuildQueryOptions): string {

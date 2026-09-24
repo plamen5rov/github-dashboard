@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { TIME_RANGES, COMMON_LICENSES, DEVELOPER_FILTERS } from '../lib/constants'
 import type { TimeRange } from '../lib/constants'
 
 export type DeveloperFilter =
@@ -40,18 +41,34 @@ const DEFAULT_FILTERS: FilterState = {
   developerFilters: [],
 }
 
+const TIME_RANGE_VALUES = new Set<string>(Object.keys(TIME_RANGES))
+const LICENSE_VALUES = new Set<string>(['all', 'open_source', 'no_license', ...COMMON_LICENSES])
+const DEVELOPER_FILTER_VALUES = new Set<string>(Object.keys(DEVELOPER_FILTERS))
+
+function parseListParam(values: string[]): string[] {
+  return Array.from(
+    new Set(values.map((v) => v.trim()).filter((v) => v.length > 0)),
+  ).sort()
+}
+
 function parseFilters(searchParams: URLSearchParams): FilterState {
+  const timeRange = searchParams.get('timeRange')
+  const licenseType = searchParams.get('licenseType')
+  const readmeLanguage = searchParams.get('readmeLanguage')
+  const rawMinStars = parseInt(searchParams.get('minStars') || '0', 10)
   return {
-    timeRange: (searchParams.get('timeRange') as TimeRange) || DEFAULT_FILTERS.timeRange,
-    language: searchParams.getAll('language'),
-    licenseType: searchParams.get('licenseType') || DEFAULT_FILTERS.licenseType,
-    minStars: parseInt(searchParams.get('minStars') || '0', 10),
-    topics: searchParams.getAll('topics'),
+    timeRange: timeRange && TIME_RANGE_VALUES.has(timeRange) ? (timeRange as TimeRange) : DEFAULT_FILTERS.timeRange,
+    language: parseListParam(searchParams.getAll('language')),
+    licenseType: licenseType && LICENSE_VALUES.has(licenseType) ? licenseType : DEFAULT_FILTERS.licenseType,
+    minStars: Number.isFinite(rawMinStars) && rawMinStars > 0 ? rawMinStars : 0,
+    topics: parseListParam(searchParams.getAll('topics')),
     includeArchived: searchParams.get('includeArchived') === 'true',
     includeForks: searchParams.get('includeForks') === 'true',
-    keyword: searchParams.get('keyword') || '',
-    readmeLanguage: (searchParams.get('readmeLanguage') as 'all' | 'english') || DEFAULT_FILTERS.readmeLanguage,
-    developerFilters: searchParams.getAll('developerFilters') as DeveloperFilter[],
+    keyword: (searchParams.get('keyword') || '').trim(),
+    readmeLanguage: readmeLanguage === 'english' ? 'english' : 'all',
+    developerFilters: parseListParam(searchParams.getAll('developerFilters')).filter((f) =>
+      DEVELOPER_FILTER_VALUES.has(f),
+    ) as DeveloperFilter[],
   }
 }
 
@@ -78,8 +95,13 @@ export function useFilters() {
   )
 
   const resetFilters = useCallback(() => {
-    setSearchParams(new URLSearchParams())
-  }, [setSearchParams])
+    const newParams = new URLSearchParams()
+    const sort = searchParams.get('sort')
+    const order = searchParams.get('order')
+    if (sort) newParams.set('sort', sort)
+    if (order) newParams.set('order', order)
+    setSearchParams(newParams)
+  }, [searchParams, setSearchParams])
 
   const activeFilterCount = useMemo(() => {
     let count = 0

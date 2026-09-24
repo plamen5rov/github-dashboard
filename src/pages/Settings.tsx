@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
-import { GITHUB_API_BASE } from '../lib/constants'
+import { getToken, setGitHubToken, clearGitHubToken } from '../lib/authStore'
+import { validateToken } from '../lib/github'
 import { SunIcon, MoonIcon, BackArrowIcon } from '../components/Icons'
 
 function Settings() {
@@ -9,19 +10,13 @@ function Settings() {
   const [saved, setSaved] = useState(false)
   const [tokenError, setTokenError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
-  const [hasExistingToken, setHasExistingToken] = useState(false)
+  const [hasExistingToken, setHasExistingToken] = useState(() => getToken() !== null)
   const { theme, toggleTheme } = useTheme()
-
-  useEffect(() => {
-    if (localStorage.getItem('github_token')) {
-      setHasExistingToken(true)
-    }
-  }, [])
 
   const handleSave = async () => {
     const trimmed = token.trim()
     if (!trimmed) {
-      localStorage.removeItem('github_token')
+      clearGitHubToken()
       setHasExistingToken(false)
       setTokenError(null)
       setSaved(true)
@@ -32,27 +27,24 @@ function Settings() {
     setIsValidating(true)
     setTokenError(null)
     try {
-      const response = await fetch(`${GITHUB_API_BASE}/rate_limit`, {
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${trimmed}`,
-        },
-      })
-      if (!response.ok) {
-        setTokenError(
-          response.status === 401
-            ? 'Invalid token — GitHub rejected it (401 Bad credentials). Check for typos or expired tokens.'
-            : `GitHub could not validate this token (HTTP ${response.status}).`,
-        )
+      const result = await validateToken(trimmed)
+      if (!result.ok) {
+        if (result.status === 401) {
+          setTokenError(
+            'Invalid token — GitHub rejected it (401 Bad credentials). Check for typos or expired tokens.',
+          )
+        } else if (result.status !== undefined) {
+          setTokenError(`GitHub could not validate this token (HTTP ${result.status}).`)
+        } else {
+          setTokenError('Could not reach GitHub to validate the token. Check your connection and try again.')
+        }
         return
       }
-      localStorage.setItem('github_token', trimmed)
+      setGitHubToken(trimmed)
       setHasExistingToken(true)
       setToken('')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {
-      setTokenError('Could not reach GitHub to validate the token. Check your connection and try again.')
     } finally {
       setIsValidating(false)
     }
@@ -115,11 +107,11 @@ function Settings() {
               {isValidating ? 'Validating…' : 'Save'}
             </button>
           </div>
-          {saved && (
-            <p className="text-sm text-green-400">Token saved successfully!</p>
-          )}
+          {saved && <p className="text-sm text-green-400">Token saved successfully!</p>}
           {tokenError && (
-            <p className="text-sm text-red-400" role="alert">{tokenError}</p>
+            <p className="text-sm text-red-400" role="alert">
+              {tokenError}
+            </p>
           )}
         </section>
 

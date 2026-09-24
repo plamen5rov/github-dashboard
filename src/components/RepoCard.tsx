@@ -4,7 +4,8 @@ import LicenseBadge from './LicenseBadge'
 import { formatNumber, formatRelativeTime } from '../lib/utils'
 import { evaluateDeveloperFilter } from '../lib/developerFilters'
 import type { DeveloperFilter } from '../hooks/useFilters'
-import { usePersonalization } from '../hooks/usePersonalization'
+import { useBookmarked, useIsInAnyCollection, useCollections } from '../hooks/usePersonalization'
+import { toggleBookmark, addToCollection } from '../lib/userPreferences'
 import { useClickOutside } from '../hooks/useClickOutside'
 import { useState, useRef, useMemo, memo } from 'react'
 import { StarIcon, ForkIcon, BookmarkIcon, FolderIcon, CheckmarkIcon, PullRequestIcon, IssueIcon } from './Icons'
@@ -17,18 +18,19 @@ interface RepoCardProps {
 }
 
 const RepoCard = memo(function RepoCard({ repo, onTopicClick, activeDeveloperFilters = [] }: RepoCardProps) {
-  const { toggleBookmark, prefs, addToCollection } = usePersonalization()
-  const bookmarked = prefs.bookmarks.some((b) => b.fullName === repo.fullName)
+  const bookmarked = useBookmarked(repo.fullName)
+  const isInAnyCollection = useIsInAnyCollection(repo.fullName)
+  const collections = useCollections()
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const isInAnyCollection = prefs.collections.some((c) => c.repoFullNames.includes(repo.fullName))
 
   useClickOutside(dropdownRef, showCollectionDropdown, () => setShowCollectionDropdown(false))
 
   const developerBadges = useMemo(
-    () => activeDeveloperFilters
-      .map((filter) => evaluateDeveloperFilter(filter, repo))
-      .filter((result) => result.badge),
+    () =>
+      activeDeveloperFilters
+        .map((filter) => evaluateDeveloperFilter(filter, repo))
+        .filter((result) => result.badge),
     [activeDeveloperFilters, repo],
   )
 
@@ -70,13 +72,11 @@ const RepoCard = memo(function RepoCard({ repo, onTopicClick, activeDeveloperFil
                     <div className="p-2 border-b border-github-border">
                       <p className="text-xs text-github-muted font-medium">Add to collection</p>
                     </div>
-                    {prefs.collections.length === 0 ? (
-                      <div className="p-3 text-xs text-github-muted text-center">
-                        No collections yet
-                      </div>
+                    {collections.length === 0 ? (
+                      <div className="p-3 text-xs text-github-muted text-center">No collections yet</div>
                     ) : (
                       <div className="max-h-48 overflow-y-auto">
-                        {prefs.collections.map((collection) => {
+                        {collections.map((collection) => {
                           const isInCollection = collection.repoFullNames.includes(repo.fullName)
                           return (
                             <button
@@ -114,9 +114,7 @@ const RepoCard = memo(function RepoCard({ repo, onTopicClick, activeDeveloperFil
             </div>
           </div>
           {repo.description && (
-            <p className="text-sm text-github-muted line-clamp-2 mt-1">
-              {repo.description}
-            </p>
+            <p className="text-sm text-github-muted line-clamp-2 mt-1">{repo.description}</p>
           )}
         </div>
       </div>

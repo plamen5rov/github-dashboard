@@ -1,9 +1,41 @@
-import type { Repository, GraphQLRepositoryEnrichment } from '../types/github'
+import type { Repository, GraphQLRepositoryEnrichment, EnrichmentFields } from '../types/github'
 import type { DeveloperFilter } from '../hooks/useFilters'
 
 interface DeveloperFilterResult {
   matches: boolean
   badge?: { label: string; icon: string; color: string }
+}
+
+const FILTER_ENRICHMENT_FIELDS: Record<DeveloperFilter, EnrichmentFields> = {
+  beginner_friendly: {},
+  good_first_issue: { goodFirstIssues: true },
+  actively_maintained: { contributors: true, recentCommits: true },
+  solo_maintained: { contributors: true },
+  production_ready: {},
+  ai_related: {},
+  indie_project: { contributors: true },
+  new_exploding: {},
+  low_competition: {},
+  enterprise_grade: { contributors: true, releases: true },
+}
+
+export function requiredEnrichmentFields(
+  developerFilters: DeveloperFilter[] | undefined,
+  readmeLanguage: 'all' | 'english' | undefined,
+): EnrichmentFields {
+  const fields: EnrichmentFields = {}
+  if (readmeLanguage === 'english') {
+    fields.readme = true
+  }
+  developerFilters?.forEach((filter) => {
+    Object.assign(fields, FILTER_ENRICHMENT_FIELDS[filter])
+  })
+  return fields
+}
+
+export function requiresTokenFor(filter: DeveloperFilter): boolean {
+  const fields = FILTER_ENRICHMENT_FIELDS[filter]
+  return Object.values(fields).some(Boolean)
 }
 
 export function evaluateDeveloperFilter(

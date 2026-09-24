@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { evaluateDeveloperFilter } from '../lib/developerFilters'
+import { evaluateDeveloperFilter, requiredEnrichmentFields } from '../lib/developerFilters'
 import type { Repository, GraphQLRepositoryEnrichment } from '../types/github'
 
 function createMockRepo(overrides: Partial<Repository> = {}): Repository {
@@ -30,15 +30,11 @@ function createMockRepo(overrides: Partial<Repository> = {}): Repository {
 function createMockEnrichment(overrides: Partial<GraphQLRepositoryEnrichment> = {}): GraphQLRepositoryEnrichment {
   return {
     openPRs: 2,
-    openIssues: 5,
     languageColor: '#3178c6',
     goodFirstIssueCount: 0,
     contributorCount: 1,
     recentCommitCount: 3,
     releaseCount: 0,
-    hasReadme: false,
-    hasTests: false,
-    dependencyCount: 0,
     ...overrides,
   }
 }
@@ -203,7 +199,6 @@ describe('evaluateDeveloperFilter', () => {
       expect(result.matches).toBe(true)
     })
   })
-
   describe('enterprise_grade', () => {
     it('matches large repos with enterprise topics', () => {
       const repo = createMockRepo({
@@ -220,6 +215,41 @@ describe('evaluateDeveloperFilter', () => {
       const result = evaluateDeveloperFilter('enterprise_grade', repo)
       expect(result.matches).toBe(false)
     })
+
   })
 
+})
+
+describe('requiredEnrichmentFields', () => {
+  it('requires nothing for the default feed', () => {
+    expect(requiredEnrichmentFields(undefined, 'all')).toEqual({})
+  })
+
+  it('requires readme text only for english filtering', () => {
+    expect(requiredEnrichmentFields(undefined, 'english')).toEqual({ readme: true })
+  })
+
+  it('requires nothing for REST-only filters', () => {
+    expect(requiredEnrichmentFields(['beginner_friendly', 'production_ready', 'ai_related', 'new_exploding', 'low_competition'], 'all')).toEqual({})
+  })
+
+  it('requires good first issue counts for good_first_issue', () => {
+    expect(requiredEnrichmentFields(['good_first_issue'], 'all')).toEqual({ goodFirstIssues: true })
+  })
+
+  it('requires contributors and commit history for actively_maintained', () => {
+    expect(requiredEnrichmentFields(['actively_maintained'], 'all')).toEqual({ contributors: true, recentCommits: true })
+  })
+
+  it('requires contributors and releases for enterprise_grade', () => {
+    expect(requiredEnrichmentFields(['enterprise_grade'], 'all')).toEqual({ contributors: true, releases: true })
+  })
+
+  it('merges requirements across filters and readme language', () => {
+    expect(requiredEnrichmentFields(['solo_maintained', 'good_first_issue'], 'english')).toEqual({
+      readme: true,
+      goodFirstIssues: true,
+      contributors: true,
+    })
+  })
 })

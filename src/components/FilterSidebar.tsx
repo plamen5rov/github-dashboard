@@ -3,14 +3,46 @@ import { useFilters } from '../hooks/useFilters'
 import { TIME_RANGES, COMMON_LICENSES, DEVELOPER_FILTERS } from '../lib/constants'
 import type { TimeRange } from '../lib/constants'
 import type { DeveloperFilter } from '../hooks/useFilters'
+import { requiresTokenFor } from '../lib/developerFilters'
 import SearchInput from './SearchInput'
 import LicenseLegend from './LicenseLegend'
-import { LANGUAGE_COLORS } from './LanguageBadge'
+import { LANGUAGE_COLORS } from '../lib/languageColors'
 import { CloseIcon, ChevronDownIcon } from './Icons'
 
 interface FilterSidebarProps {
   isOpen: boolean
   onClose: () => void
+}
+
+const POPULAR_LANGUAGES = [
+  'TypeScript', 'JavaScript', 'Python', 'Rust', 'Go',
+  'Java', 'C++', 'C', 'Ruby', 'PHP', 'Swift', 'Kotlin',
+  'Dart', 'Vue', 'Svelte', 'Shell', 'Lua', 'Scala',
+]
+
+interface SectionHeaderProps {
+  title: string
+  section: string
+  rightElement?: React.ReactNode
+  collapsed: boolean
+  onToggle: (section: string) => void
+}
+
+function SectionHeader({ title, section, rightElement, collapsed, onToggle }: SectionHeaderProps) {
+  return (
+    <div className="flex items-center w-full py-2">
+      <button
+        onClick={() => onToggle(section)}
+        className="flex items-center justify-between flex-1 text-sm font-semibold text-github-text hover:text-github-accent transition-colors"
+      >
+        <span>{title}</span>
+        <ChevronDownIcon
+          className={`w-4 h-4 transition-transform ${collapsed ? '' : 'rotate-180'}`}
+        />
+      </button>
+      {rightElement && <div className="ml-2">{rightElement}</div>}
+    </div>
+  )
 }
 
 function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
@@ -25,11 +57,6 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     developer: false,
     misc: false,
   })
-  const POPULAR_LANGUAGES = [
-    'TypeScript', 'JavaScript', 'Python', 'Rust', 'Go',
-    'Java', 'C++', 'C', 'Ruby', 'PHP', 'Swift', 'Kotlin',
-    'Dart', 'Vue', 'Svelte', 'Shell', 'Lua', 'Scala',
-  ]
 
   const handleTopicAdd = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && topicInput.trim()) {
@@ -66,22 +93,8 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }))
   }
 
-  const SectionHeader = ({ title, section, rightElement }: { title: string; section: string; rightElement?: React.ReactNode }) => (
-    <div className="flex items-center w-full py-2">
-      <button
-        onClick={() => toggleSection(section)}
-        className="flex items-center justify-between flex-1 text-sm font-semibold text-github-text hover:text-github-accent transition-colors"
-      >
-        <span>{title}</span>
-        <ChevronDownIcon className={`w-4 h-4 transition-transform ${collapsedSections[section] ? '' : 'rotate-180'}`} />
-      </button>
-      {rightElement && <div className="ml-2">{rightElement}</div>}
-    </div>
-  )
-
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -90,14 +103,12 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed lg:sticky top-0 lg:top-16 left-0 z-50 lg:z-10 h-screen lg:h-[calc(100vh-4rem)] w-72 bg-github-darker border-r border-github-border overflow-y-auto transition-transform duration-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="p-4 space-y-1">
-          {/* Mobile close button */}
           <div className="flex items-center justify-between mb-4 lg:hidden">
             <span className="text-lg font-semibold text-github-text">Filters</span>
             <button
@@ -109,7 +120,6 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             </button>
           </div>
 
-          {/* Search */}
           <div className="mb-4">
             <SearchInput
               value={filters.keyword}
@@ -117,9 +127,13 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             />
           </div>
 
-          {/* Time Range */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="Time Range" section="time" />
+            <SectionHeader
+              title="Time Range"
+              section="time"
+              collapsed={collapsedSections.time}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.time && (
               <div className="flex gap-1.5 mt-2">
                 {Object.entries(TIME_RANGES).map(([key, { label }]) => (
@@ -140,9 +154,13 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             )}
           </div>
 
-          {/* Language */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title={`Language${filters.language.length > 0 ? ` (${filters.language.length})` : ''}`} section="language" />
+            <SectionHeader
+              title={`Language${filters.language.length > 0 ? ` (${filters.language.length})` : ''}`}
+              section="language"
+              collapsed={collapsedSections.language}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.language && (
               <div className="relative mt-2">
                 <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
@@ -169,9 +187,14 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             )}
           </div>
 
-          {/* License */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="License" section="license" rightElement={<LicenseLegend />} />
+            <SectionHeader
+              title="License"
+              section="license"
+              rightElement={<LicenseLegend />}
+              collapsed={collapsedSections.license}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.license && (
               <div className="mt-2">
                 <select
@@ -195,9 +218,13 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             )}
           </div>
 
-          {/* Topics */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="Topics" section="topics" />
+            <SectionHeader
+              title="Topics"
+              section="topics"
+              collapsed={collapsedSections.topics}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.topics && (
               <div className="mt-2 space-y-2">
                 {filters.topics.length > 0 && (
@@ -232,13 +259,18 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             )}
           </div>
 
-          {/* Developer Filters */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="Developer Filters" section="developer" />
+            <SectionHeader
+              title="Developer Filters"
+              section="developer"
+              collapsed={collapsedSections.developer}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.developer && (
               <div className="mt-2 space-y-1">
                 {Object.entries(DEVELOPER_FILTERS).map(([key, { label, icon }]) => {
                   const isActive = filters.developerFilters.includes(key as DeveloperFilter)
+                  const needsToken = requiresTokenFor(key as DeveloperFilter)
                   return (
                     <button
                       key={key}
@@ -251,6 +283,14 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
                     >
                       <span>{icon}</span>
                       <span>{label}</span>
+                      {needsToken && (
+                        <span
+                          className="ml-auto text-[10px] px-1 py-0.5 rounded bg-github-border text-github-muted"
+                          title="More accurate with a GitHub personal access token"
+                        >
+                          PAT
+                        </span>
+                      )}
                     </button>
                   )
                 })}
@@ -258,9 +298,13 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             )}
           </div>
 
-          {/* Misc */}
           <div className="border-b border-github-border pb-3">
-            <SectionHeader title="Options" section="misc" />
+            <SectionHeader
+              title="Options"
+              section="misc"
+              collapsed={collapsedSections.misc}
+              onToggle={toggleSection}
+            />
             {!collapsedSections.misc && (
               <div className="mt-2 space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -307,12 +351,16 @@ function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
                       English
                     </button>
                   </div>
+                  {filters.readmeLanguage === 'english' && (
+                    <p className="text-xs text-github-muted/70 mt-1">
+                      English detection requires a GitHub personal access token.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Reset */}
           {activeFilterCount > 0 && (
             <button
               onClick={resetFilters}
